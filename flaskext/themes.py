@@ -284,7 +284,7 @@ def get_theme(ident):
     :param ident: The theme identifier.
     """
     ctx = _request_ctx_stack.top
-    return ctx.app.theme_manager[ident]
+    return ctx.app.theme_manager.themes[ident]
 
 
 def get_themes_list():
