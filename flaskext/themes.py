@@ -14,7 +14,9 @@ It takes care of:
 :license:   MIT/X11, see LICENSE for details
 """
 from __future__ import with_statement
+import itertools
 import os
+import os.path
 import re
 from flask import (Module, send_from_directory, render_template, json,
                    _request_ctx_stack, abort)
@@ -115,7 +117,7 @@ class Theme(object):
         used to display the full license text if necessary. (It is `None` if
         there was not a license.txt.)
         """
-        lt_path = os.path.join(path, 'license.txt')
+        lt_path = os.path.join(self.path, 'license.txt')
         if os.path.exists(lt_path):
             with open(lt_path) as fd:
                 return fd.read()
@@ -184,9 +186,9 @@ def theme_paths_loader(app):
     theme_paths = app.config.get('THEME_PATHS', ())
     if isinstance(theme_paths, basestring):
         theme_paths = [p.strip() for p in theme_paths.split(';')]
-    return itertools.chain(
+    return itertools.chain(*(
         load_themes_from(path) for path in theme_paths
-    )
+    ))
 
 
 class ThemeManager(object):
