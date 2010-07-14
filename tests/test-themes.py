@@ -4,7 +4,7 @@ test-themes.py
 This tests the Flask-Themes extension.
 """
 import os.path
-from flask import Flask, url_for
+from flask import Flask, url_for, render_template
 from flaskext.themes import (setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
     template_exists, themes_mod, render_theme_template)
@@ -124,3 +124,16 @@ class TestTemplates(object):
             plainsrc = render_theme_template('plain', 'hello.html').strip()
             assert coolsrc == 'Hello from Cool Blue v2.'
             assert plainsrc == 'Hello from the application'
+    
+    def test_active_theme(self):
+        app = Flask(__name__)
+        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
+        setup_themes(app, app_identifier='testing')
+        
+        with app.test_request_context('/'):
+            appdata = render_template('active.html').strip()
+            cooldata = render_theme_template('cool', 'active.html').strip()
+            plaindata = render_theme_template('plain', 'active.html').strip()
+            assert appdata == 'Application, Active theme: none'
+            assert cooldata == 'Cool Blue v2, Active theme: cool'
+            assert plaindata == 'Application, Active theme: plain'

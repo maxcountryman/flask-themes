@@ -139,6 +139,8 @@ function:
     want the theme to specify a default `Pygments`_ style in the options.)
 
 
+.. _Pygments: http://pygments.org/
+
 Tips for Theme Writers
 ----------------------
 - Always specify a doctype.
