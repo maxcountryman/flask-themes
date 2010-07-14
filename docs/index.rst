@@ -216,15 +216,15 @@ a few views, though, you will probably want to provide a helper function that
 selects the theme based on whatever (settings, logged-in user, page) and
 renders the template. For example::
 
-    def get_theme():
+    def get_current_theme():
         if g.user is not None:
-            name = g.user.theme
+            ident = g.user.theme
         else:
-            name = current_app.config.get('DEFAULT_THEME', 'plain')
-        return current_app.theme_manager.themes[name]
+            ident = current_app.config.get('DEFAULT_THEME', 'plain')
+        return get_theme(ident)
     
     def render(template, **context):
-        return render_theme_template(get_theme(), template, **context)
+        return render_theme_template(get_current_theme(), template, **context)
 
 
 .. warning::
@@ -249,6 +249,10 @@ This API documentation is automatically generated from the source code.
 .. autofunction:: render_theme_template
 
 .. autofunction:: static_file_url
+
+.. autofunction:: get_theme
+
+.. autofunction:: get_themes_list
 
 
 Loading Themes

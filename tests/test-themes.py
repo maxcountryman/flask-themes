@@ -7,7 +7,7 @@ import os.path
 from flask import Flask, url_for
 from flaskext.themes import (setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
-    template_exists, themes_mod)
+    template_exists, themes_mod, render_theme_template)
 from jinja2 import FileSystemLoader
 from operator import attrgetter
 
@@ -113,3 +113,14 @@ class TestTemplates(object):
             src = themes_mod.jinja_loader.get_source(app.jinja_env,
                                                      'cool/hello.html')
             assert src[0].strip() == 'Hello from Cool Blue v2.'
+    
+    def test_render_theme_template(self):
+        app = Flask(__name__)
+        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
+        setup_themes(app, app_identifier='testing')
+        
+        with app.test_request_context('/'):
+            coolsrc = render_theme_template('cool', 'hello.html').strip()
+            plainsrc = render_theme_template('plain', 'hello.html').strip()
+            assert coolsrc == 'Hello from Cool Blue v2.'
+            assert plainsrc == 'Hello from the application'

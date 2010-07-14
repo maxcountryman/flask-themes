@@ -276,6 +276,26 @@ class ThemeManager(object):
                 self.themes[theme.identifier] = theme
 
 
+def get_theme(ident):
+    """
+    This gets the theme with the given identifier from the current app's
+    theme manager.
+    
+    :param ident: The theme identifier.
+    """
+    ctx = _request_ctx_stack.top
+    return ctx.app.theme_manager[ident]
+
+
+def get_themes_list():
+    """
+    This returns a list of all the themes in the current app's theme manager,
+    sorted by identifier.
+    """
+    ctx = _request_ctx_stack.top
+    return list(ctx.app.theme_manager.list_themes())
+
+
 ### theme template loader
 
 class ThemeTemplateLoader(BaseLoader):
