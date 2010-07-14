@@ -19,7 +19,7 @@ import os
 import os.path
 import re
 from flask import (Module, send_from_directory, render_template, json,
-                   _request_ctx_stack, abort)
+                   _request_ctx_stack, abort, url_for)
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from operator import attrgetter
@@ -29,6 +29,9 @@ DOCTYPES = 'html4 html5 xhtml'.split()
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
 containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
+
+def starchain(i):
+    return itertools.chain(*i)
 
 
 class Theme(object):
@@ -186,9 +189,9 @@ def theme_paths_loader(app):
     theme_paths = app.config.get('THEME_PATHS', ())
     if isinstance(theme_paths, basestring):
         theme_paths = [p.strip() for p in theme_paths.split(';')]
-    return itertools.chain(*(
+    return starchain(
         load_themes_from(path) for path in theme_paths
-    ))
+    )
 
 
 class ThemeManager(object):
@@ -267,9 +270,10 @@ class ThemeManager(object):
         earlier ones. Any invalid themes found (for example, if the
         application identifier is incorrect) will be skipped.
         """
-        for theme in itertools.chain(ldr(self.app) for ldr in self.loaders):
+        self._themes = themes = {}
+        for theme in starchain(ldr(self.app) for ldr in self.loaders):
             if self.valid_app_id(theme.application):
-                self._themes[theme.identifier] = theme
+                self.themes[theme.identifier] = theme
 
 
 ### theme template loader
@@ -287,7 +291,7 @@ class ThemeTemplateLoader(BaseLoader):
         except (ValueError, KeyError):
             raise TemplateNotFound(template)
         try:
-            return theme.jinja_loader.get_source(templatename)
+            return theme.jinja_loader.get_source(environment, templatename)
         except TemplateNotFound:
             raise TemplateNotFound(template)
     
@@ -296,13 +300,13 @@ class ThemeTemplateLoader(BaseLoader):
         ctx = _request_ctx_stack.top
         for ident, theme in ctx.app.theme_manager.themes.iteritems():
             res.extend('%s/%s' % (ident, t)
-                       for t in app.jinja_loader.list_templates())
+                       for t in theme.jinja_loader.list_templates())
         return res
 
 
 def template_exists(templatename):
     ctx = _request_ctx_stack.top
-    return templatename in containable(ctx.app.list_templates())
+    return templatename in containable(ctx.app.jinja_env.list_templates())
 
 
 ### theme functionality
