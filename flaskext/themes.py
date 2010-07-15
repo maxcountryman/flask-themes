@@ -20,7 +20,7 @@ import os.path
 import re
 from flask import (Module, send_from_directory, render_template, json,
                    _request_ctx_stack, abort, url_for)
-from jinja2 import contextfunction
+from jinja2 import contextfunction, Undefined
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from operator import attrgetter
 from werkzeug import cached_property
@@ -375,8 +375,9 @@ def setup_themes(app, loaders=None, app_identifier=None,
 
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
-    if '_theme' in ctx.vars:
-        theme = ctx.vars['theme']
+    active_theme = ctx.resolve('_theme')
+    if not isinstance(active_theme, Undefined):
+        theme = active_theme
     elif ctx.name.startswith('_themes/'):
         theme, thistpl = ctx.name[8:].split('/', 1)
     else:
