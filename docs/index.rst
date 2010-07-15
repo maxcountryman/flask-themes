@@ -145,6 +145,10 @@ Tips for Theme Writers
 ----------------------
 - Always specify a doctype.
 - Remember that you have to use double-quotes with strings in JSON.
+- Look at the non-theme templates provided with the application. See how they
+  interact.
+- Remember that most of the time, you can alter the application's appearance
+  completely just by changing the layout template and the style.
 
 
 Using Themes in Your Application
@@ -237,6 +241,18 @@ renders the template. For example::
    load that theme and pass it to `setup_themes`, because if the theme is not
    loaded by the manager, then its templates and static files won't be
    available, which will usually lead to your application breaking.
+
+
+Tips for Application Programmers
+--------------------------------
+- Provide default templates, preferably for everything. Use simple, unstyled
+  HTML.
+- If you find yourself repeating design elements, put them in a macro in a
+  separate template. That way, theme authors can override them more easily.
+- Put class names or IDs on any elements that the theme author may want to
+  style. (And by that I mean all of them.) That way they won't have to
+  override the template unnecessarily if all they want to do is right-align
+  the meta information.
 
 
 API Documentation
