@@ -373,11 +373,19 @@ def setup_themes(app, loaders=None, app_identifier=None,
     app.register_module(themes_mod, url_prefix=theme_url_prefix)
 
 
+def active_theme(ctx):
+    if '_theme' in ctx:
+        return ctx['_theme']
+    elif ctx.name.startswith('_themes/'):
+        return ctx.name[8:].split('/', 1)[0]
+    else:
+        raise RuntimeError("Could not find the active theme")
+        
+
+
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
-    if '_theme' not in ctx:
-        raise RuntimeError("Could not find the active theme")
-    theme = ctx['_theme']
+    theme = active_theme(ctx)
     templatepath = '_themes/%s/%s' % (theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
@@ -387,10 +395,7 @@ def global_theme_template(ctx, templatename, fallback=True):
 
 @contextfunction
 def global_theme_static(ctx, filename, external=False):
-    if not '_theme' in ctx:
-        raise RuntimeError("Attempted to get a theme static file from "
-                           "outside a theme")
-    theme = ctx['_theme']
+    theme = active_theme(ctx)
     return static_file_url(theme, filename, external)
 
 
