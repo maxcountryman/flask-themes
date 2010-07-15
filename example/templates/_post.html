@@ -1,0 +1,9 @@
+{% macro show_post(post) %}
+
+<h2>{{ post.title }}</h2>
+
+<p class=meta>Created on {{ post.created.strftime('%x at %X') }}</p>
+
+{{ post.content }}
+
+{% endmacro %}

@@ -1,0 +1,10 @@
+{% extends theme('layout.html') %}
+{% from theme('_post.html') import show_post %}
+
+{% set title = post.title %}
+
+{% block body %}
+
+{{ show_post(post) }}
+
+{% endblock body %}

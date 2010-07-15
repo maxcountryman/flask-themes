@@ -1,0 +1,16 @@
+{% extends theme('layout.html') %}
+{% from theme('_post.html') import show_post %}
+
+{% set title = 'Index' %}
+
+{% block body %}
+
+{% for post in posts %}
+
+{{ show_post(post) }}
+
+<p class=permalink>{{ link_to('Permalink', 'post', slug=post.slug) }}</p>
+
+{% endfor %}
+
+{% endblock body %}

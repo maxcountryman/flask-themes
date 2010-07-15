@@ -1,0 +1,14 @@
+{% extends theme('layout.html') %}
+
+{% set title = 'Archive' %}
+
+{% block body %}
+<h2>Archive</h2>
+
+<ul>
+{%- for post in posts %}
+    <li>{{ link_to(post.title, 'post', slug=post.slug) }}
+        &mdash; created on {{ post.created.strftime('%x at %X') }}</li>
+{%- endfor %}
+</ul>
+{% endblock body %}
