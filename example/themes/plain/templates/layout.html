@@ -1,0 +1,25 @@
+<!doctype html>
+{% from "_helpers.html" import link_to %}
+<head>
+    <title>Theme Sandbox: {{ title }}</title>
+    <link rel=stylesheet href="{{ theme_static('static.css') }}">
+    {% block head %}{% endblock head %}
+</head>
+
+<body>
+    <div id=page>
+        <div class=nav>
+            {{ link_to('Index', 'index') }} |
+            {{ link_to('Archive', 'archive') }} |
+            {{ link_to('About', 'about') }} |
+            {{ link_to('Themes', 'themes') }}
+        </div>
+        
+        <h1>Theme Sandbox</h1>
+        
+        <hr class=top>
+        
+        {% block body %}
+        {% endblock body %}
+    </div>
+</body>

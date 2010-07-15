@@ -1,0 +1,50 @@
+div#page {
+    width: 40em;
+    margin: 16px auto;
+    font: serif;
+}
+
+h1, h2, h3 {
+    color: #121;
+}
+
+a {
+    color: #484;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+h3 {
+    font-size: 1.2em;
+}
+
+div.nav {
+    text-align: right;
+    font-size: 0.9em;
+    float: right;
+}
+
+hr.top {
+  border-color: #121;
+  border-style: solid;
+  border-width: 1px 0 0;
+  clear: both;
+  margin: 0 0 20px;
+  height: 0;
+}
+
+p.meta {
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+p.permalink, p.select {
+    text-align: right;
+    font-size: 0.9em;
+}

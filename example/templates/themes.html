@@ -11,6 +11,10 @@
 
 <h3>{{ theme.name }}</h3>
 
+<p class=meta>
+    By {{ theme.author }}{% if theme.license %}, license: {{ theme.license }}{% endif %}
+</p>
+
 <p>{{ theme.description }}</p>
 
 <p class=select>{{ link_to('Select this theme', 'settheme', ident=theme.identifier) }}</p>
