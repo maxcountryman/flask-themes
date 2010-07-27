@@ -18,11 +18,14 @@ Links
 
 """
 from setuptools import setup
-
+import sys
+requires = ['Flask>=0.6']
+if sys.version_info < (2, 6):
+    requires.append('simplejson')
 
 setup(
     name='Flask-Themes',
-    version='0.1.1',
+    version='0.1.2',
     url='http://bitbucket.org/leafstorm/flask-themes/',
     license='MIT',
     author='Matthew "LeafStorm" Frazier',
@@ -33,9 +36,7 @@ setup(
     namespace_packages=['flaskext'],
     zip_safe=False,
     platforms='any',
-    install_requires=[
-        'Flask>=0.5'
-    ],
+    install_requires=requires,
     tests_require='nose',
     test_suite='nose.collector',
     classifiers=[
