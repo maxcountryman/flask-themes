@@ -1,0 +1,6 @@
+include tests/*.py
+include tests/*.html
+include tests/*.json
+include tests/*.txt
+include base_theme/*
+include new-theme.py
