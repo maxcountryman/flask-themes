@@ -3,6 +3,7 @@ test-themes.py
 ==============
 This tests the Flask-Themes extension.
 """
+from __future__ import with_statement
 import os.path
 from flask import Flask, url_for, render_template
 from flaskext.themes import (setup_themes, Theme, load_themes_from,
