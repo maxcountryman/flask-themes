@@ -1,6 +1,5 @@
-include tests/*.py
-include tests/*.html
-include tests/*.json
-include tests/*.txt
+recursive-include tests *.py *.html *.txt *.json
 include base_theme/*
+include base_theme/static/*
+include base_theme/templates/*
 include new-theme.py

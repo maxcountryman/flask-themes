@@ -22,7 +22,7 @@ from setuptools import setup
 
 setup(
     name='Flask-Themes',
-    version='0.1',
+    version='0.1.1',
     url='http://bitbucket.org/leafstorm/flask-themes/',
     license='MIT',
     author='Matthew "LeafStorm" Frazier',
