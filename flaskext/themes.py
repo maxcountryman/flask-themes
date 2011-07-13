@@ -24,6 +24,12 @@ from jinja2 import contextfunction, Undefined
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from operator import attrgetter
 from werkzeug import cached_property
+try:
+    from flask import Blueprint
+except ImportError:
+    USING_BLUEPRINTS = False
+else:
+    USING_BLUEPRINTS = True
 
 DOCTYPES = 'html4 html5 xhtml'.split()
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -303,7 +309,13 @@ class ThemeTemplateLoader(BaseLoader):
     This is a template loader that loads templates from the current app's
     loaded themes.
     """
+    def __init__(self, as_blueprint=False):
+        self.as_blueprint = as_blueprint
+        BaseLoader.__init__(self)
+    
     def get_source(self, environment, template):
+        if self.as_blueprint and template.startswith("_themes/"):
+            template = template[8:]
         try:
             themename, templatename = template.split('/', 1)
             ctx = _request_ctx_stack.top
@@ -318,8 +330,12 @@ class ThemeTemplateLoader(BaseLoader):
     def list_templates(self):
         res = []
         ctx = _request_ctx_stack.top
+        if USING_BLUEPRINTS and not self.as_blueprint:
+            fmt = '_themes/%s/%s'
+        else:
+            fmt = '%s/%s'
         for ident, theme in ctx.app.theme_manager.themes.iteritems():
-            res.extend('%s/%s' % (ident, t)
+            res.extend((fmt % (ident, t)).encode("utf8")
                        for t in theme.jinja_loader.list_templates())
         return res
 
@@ -335,7 +351,13 @@ def template_exists(templatename):
 themes_mod = Module(__name__, name='_themes', url_prefix='/_themes')
 themes_mod.jinja_loader     # prevent any of the property's methods from
                             # taking effect
-themes_mod.jinja_loader = ThemeTemplateLoader()
+themes_mod.jinja_loader = ThemeTemplateLoader(False)
+
+
+if USING_BLUEPRINTS:
+    themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
+    themes_blueprint.jinja_loader
+    themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
 
 
 @themes_mod.route('/<themeid>/<path:filename>')
@@ -348,12 +370,18 @@ def static(themeid, filename):
     return send_from_directory(theme.static_path, filename)
 
 
+if USING_BLUEPRINTS:
+    themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static',
+                                  view_func=static)
+
+
 def setup_themes(app, loaders=None, app_identifier=None,
-                 manager_cls=ThemeManager, theme_url_prefix='/_themes'):
+                 manager_cls=ThemeManager, theme_url_prefix='/_themes',
+                 force_module=False):
     """
     This sets up the theme infrastructure by adding a `ThemeManager` to the
-    given app and registering the module containing the views and templates
-    needed.
+    given app and registering the module/blueprint containing the views and
+    templates needed.
     
     :param app: The `~flask.Flask` instance to set up themes for.
     :param loaders: An iterable of loaders to use. It defaults to
@@ -364,13 +392,20 @@ def setup_themes(app, loaders=None, app_identifier=None,
                         in here.
     :param theme_url_prefix: The prefix to use for the URLs on the themes
                              module. (Defaults to ``/_themes``.)
+    :param force_module: By default, if you are using Flask 0.7, the
+                         blueprint system will be used. If you require
+                         the module system to be used instead, set this
+                         to `True`.
     """
     if app_identifier is None:
         app_identifier = app.import_name
     manager = manager_cls(app, app_identifier, loaders=loaders)
     app.jinja_env.globals['theme'] = global_theme_template
     app.jinja_env.globals['theme_static'] = global_theme_static
-    app.register_module(themes_mod, url_prefix=theme_url_prefix)
+    if USING_BLUEPRINTS and not force_module:
+        app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
+    else:
+        app.register_module(themes_mod, url_prefix=theme_url_prefix)
 
 
 def active_theme(ctx):

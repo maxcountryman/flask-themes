@@ -9,7 +9,9 @@ from flask import Flask, url_for, render_template
 from flaskext.themes import (setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
     template_exists, themes_mod, render_theme_template, get_theme,
-    get_themes_list)
+    get_themes_list, USING_BLUEPRINTS)
+if USING_BLUEPRINTS:
+    from flaskext.themes import themes_blueprint
 from jinja2 import FileSystemLoader
 from operator import attrgetter
 
@@ -77,7 +79,10 @@ class TestSetup(object):
         setup_themes(app, app_identifier='testing')
         
         assert hasattr(app, 'theme_manager')
-        assert '_themes' in app.modules
+        if USING_BLUEPRINTS:
+            assert '_themes' in app.blueprints
+        else:
+            assert '_themes' in app.modules
         assert 'theme' in app.jinja_env.globals
         assert 'theme_static' in app.jinja_env.globals
     
@@ -127,14 +132,27 @@ class TestTemplates(object):
             assert template_exists('_themes/cool/hello.html')
             assert not template_exists('_themes/plain/hello.html')
     
-    def test_loader(self):
+    def test_loader_module(self):
+        app = Flask(__name__)
+        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
+        setup_themes(app, app_identifier='testing', force_module=True)
+        
+        with app.test_request_context('/'):
+            src = themes_mod.jinja_loader.get_source(app.jinja_env,
+                                                     'cool/hello.html')
+            assert src[0].strip() == 'Hello from Cool Blue v2.'
+    
+    def test_loader_blueprint(self):
+        if not USING_BLUEPRINTS:
+            return
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
         
         with app.test_request_context('/'):
-            src = themes_mod.jinja_loader.get_source(app.jinja_env,
-                                                     'cool/hello.html')
+            src = themes_blueprint.jinja_loader.get_source(
+                app.jinja_env, '_themes/cool/hello.html'
+            )
             assert src[0].strip() == 'Hello from Cool Blue v2.'
     
     def test_render_theme_template(self):
