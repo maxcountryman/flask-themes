@@ -376,8 +376,7 @@ if USING_BLUEPRINTS:
 
 
 def setup_themes(app, loaders=None, app_identifier=None,
-                 manager_cls=ThemeManager, theme_url_prefix='/_themes',
-                 force_module=False):
+                 manager_cls=ThemeManager, theme_url_prefix='/_themes'):
     """
     This sets up the theme infrastructure by adding a `ThemeManager` to the
     given app and registering the module/blueprint containing the views and
@@ -392,17 +391,13 @@ def setup_themes(app, loaders=None, app_identifier=None,
                         in here.
     :param theme_url_prefix: The prefix to use for the URLs on the themes
                              module. (Defaults to ``/_themes``.)
-    :param force_module: By default, if you are using Flask 0.7, the
-                         blueprint system will be used. If you require
-                         the module system to be used instead, set this
-                         to `True`.
     """
     if app_identifier is None:
         app_identifier = app.import_name
     manager = manager_cls(app, app_identifier, loaders=loaders)
     app.jinja_env.globals['theme'] = global_theme_template
     app.jinja_env.globals['theme_static'] = global_theme_static
-    if USING_BLUEPRINTS and not force_module:
+    if USING_BLUEPRINTS:
         app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
     else:
         app.register_module(themes_mod, url_prefix=theme_url_prefix)

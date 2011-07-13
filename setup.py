@@ -25,7 +25,7 @@ if sys.version_info < (2, 6):
 
 setup(
     name='Flask-Themes',
-    version='0.1.2',
+    version='0.1.3',
     url='http://bitbucket.org/leafstorm/flask-themes/',
     license='MIT',
     author='Matthew "LeafStorm" Frazier',

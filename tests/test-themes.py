@@ -132,27 +132,20 @@ class TestTemplates(object):
             assert template_exists('_themes/cool/hello.html')
             assert not template_exists('_themes/plain/hello.html')
     
-    def test_loader_module(self):
-        app = Flask(__name__)
-        app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        setup_themes(app, app_identifier='testing', force_module=True)
-        
-        with app.test_request_context('/'):
-            src = themes_mod.jinja_loader.get_source(app.jinja_env,
-                                                     'cool/hello.html')
-            assert src[0].strip() == 'Hello from Cool Blue v2.'
-    
-    def test_loader_blueprint(self):
-        if not USING_BLUEPRINTS:
-            return
+    def test_loader(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
         
         with app.test_request_context('/'):
-            src = themes_blueprint.jinja_loader.get_source(
-                app.jinja_env, '_themes/cool/hello.html'
-            )
+            if USING_BLUEPRINTS:
+                src = themes_blueprint.jinja_loader.get_source(
+                    app.jinja_env, '_themes/cool/hello.html'
+                )
+            else:
+                src = themes_mod.jinja_loader.get_source(
+                    app.jinja_env, 'cool/hello.html'
+                )
             assert src[0].strip() == 'Hello from Cool Blue v2.'
     
     def test_render_theme_template(self):
