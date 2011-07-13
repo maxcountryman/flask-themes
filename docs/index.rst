@@ -160,8 +160,17 @@ configured, so you can call it whenever is convenient. It does three things:
 * Adds a `ThemeManager` instance to your application as ``app.theme_manager``.
 * Registers the `theme` and `theme_static` globals with the Jinja2
   environment.
-* Registers the `_themes` module to your application, by default with the URL
-  prefix ``/_themes`` (you can change it).
+* Registers the `_themes` module or blueprint (depending on the Flask version)
+  to your application, by default with the URL prefix ``/_themes`` (you can
+  change it).
+
+.. warning::
+
+   Since the "Blueprints" mechanism of Flask 0.7 causes headaches in module
+   compatibility mode, `setup_themes` will automatically register `_themes`
+   as a blueprint and not as a module if possible. If this causes headaches
+   with your application, then you need to either (a) upgrade to Flask 0.7 or
+   (b) set ``Flask<0.7`` in your requirements.txt file.
 
 
 Theme Loaders
