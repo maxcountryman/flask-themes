@@ -416,7 +416,10 @@ def active_theme(ctx):
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
-    templatepath = '_themes/%s/%s' % (theme, templatename)
+    if USING_BLUEPRINTS:
+        templatepath = '%s/%s' % (theme, templatename)
+    else:
+        templatepath = '_themes/%s/%s' % (theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
