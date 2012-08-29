@@ -6,12 +6,12 @@ This tests the Flask-Themes extension.
 from __future__ import with_statement
 import os.path
 from flask import Flask, url_for, render_template
-from flaskext.themes import (setup_themes, Theme, load_themes_from,
+from flask.ext.themes import (setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
     template_exists, themes_mod, render_theme_template, get_theme,
     get_themes_list, USING_BLUEPRINTS)
 if USING_BLUEPRINTS:
-    from flaskext.themes import themes_blueprint
+    from flask.ext.themes import themes_blueprint
 from jinja2 import FileSystemLoader
 from operator import attrgetter
 
@@ -129,7 +129,10 @@ class TestTemplates(object):
         
         with app.test_request_context('/'):
             assert template_exists('hello.html')
-            assert template_exists('_themes/cool/hello.html')
+            if USING_BLUEPRINTS:
+                assert template_exists('cool/hello.html')
+            else:
+                assert template_exists('_themes/cool/hello.html')
             assert not template_exists('_themes/plain/hello.html')
     
     def test_loader(self):

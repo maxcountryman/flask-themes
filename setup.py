@@ -25,15 +25,14 @@ if sys.version_info < (2, 6):
 
 setup(
     name='Flask-Themes',
-    version='0.1.3',
+    version='0.1.4',
     url='http://bitbucket.org/leafstorm/flask-themes/',
     license='MIT',
     author='Matthew "LeafStorm" Frazier',
     author_email='leafstormrush@gmail.com',
     description='Provides infrastructure for theming Flask applications',
     long_description=__doc__,
-    packages=['flaskext'],
-    namespace_packages=['flaskext'],
+    packages=['flask_themes'],
     zip_safe=False,
     platforms='any',
     install_requires=requires,
