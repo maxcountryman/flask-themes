@@ -331,10 +331,7 @@ class ThemeTemplateLoader(BaseLoader):
     def list_templates(self):
         res = []
         ctx = _request_ctx_stack.top
-        if USING_BLUEPRINTS and not self.as_blueprint:
-            fmt = '_themes/%s/%s'
-        else:
-            fmt = '%s/%s'
+        fmt = '_themes/%s/%s'
         for ident, theme in ctx.app.theme_manager.themes.iteritems():
             res.extend((fmt % (ident, t)).encode("utf8")
                        for t in theme.jinja_loader.list_templates())
@@ -416,10 +413,7 @@ def active_theme(ctx):
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
-    if USING_BLUEPRINTS:
-        templatepath = '%s/%s' % (theme, templatename)
-    else:
-        templatepath = '_themes/%s/%s' % (theme, templatename)
+    templatepath = '_themes/%s/%s' % (theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
