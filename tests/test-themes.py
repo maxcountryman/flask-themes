@@ -6,12 +6,12 @@ This tests the Flask-Themes extension.
 from __future__ import with_statement
 import os.path
 from flask import Flask, url_for, render_template
-from flaskext.themes import (setup_themes, Theme, load_themes_from,
+from flask.ext.themes import (setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
     template_exists, themes_mod, render_theme_template, get_theme,
     get_themes_list, USING_BLUEPRINTS)
 if USING_BLUEPRINTS:
-    from flaskext.themes import themes_blueprint
+    from flask.ext.themes import themes_blueprint
 from jinja2 import FileSystemLoader
 from operator import attrgetter
 
@@ -30,7 +30,7 @@ class TestThemeObject(object):
         assert cool.templates_path == join(cool.path, 'templates')
         assert cool.license_text is None
         assert isinstance(cool.jinja_loader, FileSystemLoader)
-    
+
     def test_license_text(self):
         path = join(TESTS, 'themes', 'plain')
         plain = Theme(path)
@@ -45,7 +45,7 @@ class TestLoaders(object):
         assert themes[0].identifier == 'cool'
         assert themes[1].identifier == 'notthis'
         assert themes[2].identifier == 'plain'
-    
+
     def test_packaged_themes_loader(self):
         app = Flask(__name__)
         themes_iter = packaged_themes_loader(app)
@@ -53,7 +53,7 @@ class TestLoaders(object):
         assert themes[0].identifier == 'cool'
         assert themes[1].identifier == 'notthis'
         assert themes[2].identifier == 'plain'
-    
+
     def test_theme_paths_loader(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
@@ -72,12 +72,12 @@ class TestSetup(object):
         themeids.sort()
         assert themeids == ['cool', 'plain']
         assert manager.themes['cool'].name == 'Cool Blue v2'
-    
+
     def test_setup_themes(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         assert hasattr(app, 'theme_manager')
         if USING_BLUEPRINTS:
             assert '_themes' in app.blueprints
@@ -85,12 +85,12 @@ class TestSetup(object):
             assert '_themes' in app.modules
         assert 'theme' in app.jinja_env.globals
         assert 'theme_static' in app.jinja_env.globals
-    
+
     def test_get_helpers(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             cool = app.theme_manager.themes['cool']
             plain = app.theme_manager.themes['plain']
@@ -113,7 +113,7 @@ class TestStatic(object):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             url = static_file_url('cool', 'style.css')
             genurl = url_for('_themes.static', themeid='cool',
@@ -126,17 +126,17 @@ class TestTemplates(object):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             assert template_exists('hello.html')
             assert template_exists('_themes/cool/hello.html')
             assert not template_exists('_themes/plain/hello.html')
-    
+
     def test_loader(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             if USING_BLUEPRINTS:
                 src = themes_blueprint.jinja_loader.get_source(
@@ -147,23 +147,23 @@ class TestTemplates(object):
                     app.jinja_env, 'cool/hello.html'
                 )
             assert src[0].strip() == 'Hello from Cool Blue v2.'
-    
+
     def test_render_theme_template(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             coolsrc = render_theme_template('cool', 'hello.html').strip()
             plainsrc = render_theme_template('plain', 'hello.html').strip()
             assert coolsrc == 'Hello from Cool Blue v2.'
             assert plainsrc == 'Hello from the application'
-    
+
     def test_active_theme(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             appdata = render_template('active.html').strip()
             cooldata = render_theme_template('cool', 'active.html').strip()
@@ -171,22 +171,22 @@ class TestTemplates(object):
             assert appdata == 'Application, Active theme: none'
             assert cooldata == 'Cool Blue v2, Active theme: cool'
             assert plaindata == 'Application, Active theme: plain'
-    
+
     def test_theme_static(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             coolurl = static_file_url('cool', 'style.css')
             cooldata = render_theme_template('cool', 'static.html').strip()
             assert cooldata == 'Cool Blue v2, %s' % coolurl
-    
+
     def test_theme_static_outside(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             try:
                 render_template('static.html')
@@ -195,12 +195,12 @@ class TestTemplates(object):
             else:
                 raise AssertionError("Rendering static.html should have "
                                      "caused a RuntimeError")
-    
+
     def test_theme_include_static(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         setup_themes(app, app_identifier='testing')
-        
+
         with app.test_request_context('/'):
             data = render_template('static_parent.html').strip()
             url = static_file_url('plain', 'style.css')

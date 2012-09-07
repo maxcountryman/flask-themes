@@ -10,7 +10,7 @@ A sandbox to play around with themes in.
 """
 import yaml
 from flask import (Flask, url_for, redirect, session, Markup, abort)
-from flaskext.themes import (setup_themes, render_theme_template,
+from flask.ext.themes import (setup_themes, render_theme_template,
                              get_themes_list)
 from operator import attrgetter
 
