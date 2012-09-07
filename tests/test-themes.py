@@ -129,10 +129,7 @@ class TestTemplates(object):
 
         with app.test_request_context('/'):
             assert template_exists('hello.html')
-            if USING_BLUEPRINTS:
-                assert template_exists('cool/hello.html')
-            else:
-                assert template_exists('_themes/cool/hello.html')
+            assert template_exists('_themes/cool/hello.html')
             assert not template_exists('_themes/plain/hello.html')
 
     def test_loader(self):
