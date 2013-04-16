@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-flaskext.themes
+flask.ext.fleem
 ===============
 This provides infrastructure for theming support in your Flask applications.
 It takes care of:
@@ -21,7 +21,10 @@ from theme import Theme, ThemeTemplateLoader
 from theme_manager import ThemeManager
 
 
-DOCTYPES = 'html4 html5 xhtml'.split()
+try:
+    from flask.ext.assets import Environment, Bundle
+except:
+    pass
 
 containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
 
@@ -42,7 +45,7 @@ def get_themes_list():
     sorted by identifier.
     """
     ctx = _app_ctx_stack.top
-    return list(ctx.app.theme_manager.list_themes())
+    return list(ctx.app.theme_manager.list_themes)
 
 
 def template_exists(templatename):
@@ -77,7 +80,7 @@ def static_file_url(theme, filename, external=False):
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
-    templatepath = '_themes/%s/%s' % (theme, templatename)
+    templatepath = '_themes/{}/{}'.format(theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
@@ -118,7 +121,7 @@ def render_theme_template(theme, template_name, _fallback=True, **context):
         else:
             raise
 
-class FlaskTheme(object):
+class Fleem(object):
     """
     :param app: The `~flask.Flask` instance to set up themes for.
     :param loaders: An iterable of loaders to use. It defaults to
@@ -134,21 +137,36 @@ class FlaskTheme(object):
                        loaders=None,
                        app_identifier=None,
                        manager_cls=ThemeManager,
+                       theme_manager=None,
                        theme_url_prefix="/_themes"):
         self.loaders = loaders
         self.app_identifier = app_identifier
         self.manager_cls = manager_cls
+        self.theme_manager = theme_manager
         self.theme_url_prefix = theme_url_prefix
 
         if app is not None:
             self.app = app
-            self.init_app(app)
+            self.init_app(self.app,
+                          self.app_identifier,
+                          self.manager_cls,
+                          self.loaders)
         else:
             self.app = None
 
+        if Environment and Bundle:
+            if self.app:
+                self.packaging = True
+                self.theming_assets = Environment(self.app)
 
-    def init_app(self, app):
-        self.setup_themes()
+
+    def init_app(self, app, app_identifier, manager_class, loaders):
+        if app_identifier is None:
+            self.app_identifier = app.import_name
+        self.theme_manager = manager_class(app, self.app_identifier, loaders=loaders)
+        app.jinja_env.globals['theme'] = global_theme_template
+        app.jinja_env.globals['theme_static'] = global_theme_static
+        app.register_blueprint(self._blueprint, url_prefix=self.theme_url_prefix)
 
 
     @property
@@ -166,18 +184,27 @@ class FlaskTheme(object):
         themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
         return themes_blueprint
 
-    #def _make_theme_blueprint(self):
-    #    pass
-        #for theme in in themes
-        #   name =
-        #   theme_blueprint =
-        #   themes_blueprint.jinja_loader
-        #   themes_blueprint.jinja_loader = ThemeTemplateLoader()
+    def register_theme_css(self, theme):
+        pass#manifest, bundle = self.return_bundle('css', theme_name, 'cssmin')
 
-    def setup_themes(self):
-        if self.app_identifier is None:
-            self.app_identifier = self.app.import_name
-        self.manager_cls(self.app, self.app_identifier, loaders=self.loaders)
-        self.app.jinja_env.globals['theme'] = global_theme_template
-        self.app.jinja_env.globals['theme_static'] = global_theme_static
-        self.app.register_blueprint(self._blueprint, url_prefix=self.theme_url_prefix)
+    def register_theme_js(self, theme):
+        pass#manifest, bundle = self.return_bundle('js', theme_name, 'rjsmin')
+
+    def query_manager(self, query):
+        return getattr(self.manager_cls, query)
+
+    @property
+    def themes(self):
+        return self.query_manager('themes')
+
+    @property
+    def list_themes(self):
+        return self.query_manager('list_themes')
+
+    @property
+    def list_loaders(self):
+        return self.query_manager('loaders')
+
+    @property
+    def refresh_themes(self):
+        return self.query_manager('refresh')()

@@ -106,7 +106,7 @@ class ThemeManager(object):
             self.refresh()
         return self._themes
 
-
+    @property
     def list_themes(self):
         """
         This yields all the `Theme` objects, in sorted order.

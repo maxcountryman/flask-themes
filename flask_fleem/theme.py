@@ -68,6 +68,24 @@ class Theme(object):
         #: and may determine other aspects of the application's behavior.
         self.options = i.get('options', {})
 
+    def theme_files_of(self, extension):
+        listing_files = []
+        listing_files.extend([fname for fname in os.listdir(self.static_path) if os.path.splitext(fname)[-1] == extension])
+        if os.path.exists(os.path.join(self.static_path, extension)):
+            listing_files.extend([fname for fname in os.listdir(os.path.join(self.static_path, extension)) \
+                                  if os.path.splitext(fname)[-1] == extension])
+        return listing_files
+
+    def return_bundle(self, extension, resource_filter, bundler=None):
+        if bundler:
+            try:
+                resource_tag = "theme-{}.{}".format(self.identifier, extension)
+                resources = self.theme_files_of(extension)
+                manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
+                return manifest, bundler(*resources, output=resource_tag, filters=resource_filter)
+            except:
+                pass
+
     @cached_property
     def static_path(self):
         """
@@ -82,19 +100,19 @@ class Theme(object):
         """
         return os.path.join(self.path, 'templates')
 
-    #@cached_property
-    #def license_text(self):
-    #    """
-    #    The contents of the theme's license.txt file, if it exists. This is
-    #    used to display the full license text if necessary. (It is `None` if
-    #    there was not a license.txt.)
-    #    """
-    #    lt_path = os.path.join(self.path, 'license.txt')
-    #    if os.path.exists(lt_path):
-    #        with open(lt_path) as fd:
-    #            return fd.read()
-    #    else:
-    #        return None
+    @cached_property
+    def license_text(self):
+        """
+        The contents of the theme's license.txt file, if it exists. This is
+        used to display the full license text if necessary. (It is `None` if
+        there was not a license.txt.)
+        """
+        lt_path = os.path.join(self.path, 'license.txt')
+        if os.path.exists(lt_path):
+            with open(lt_path) as fd:
+                return fd.read()
+        else:
+            return None
 
     @cached_property
     def jinja_loader(self):
@@ -104,6 +122,8 @@ class Theme(object):
         """
         return FileSystemLoader(self.templates_path)
 
+    def __repr__(self):
+        return "<Theme object | name: {} | application_identifier: {} | identifier: {} >".format(self.name, self.application, self.identifier)
 
 ### theme template loader
 class ThemeTemplateLoader(BaseLoader):

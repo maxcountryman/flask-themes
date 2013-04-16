@@ -9,7 +9,7 @@ import unittest
 
 from os import path
 from flask import Flask, url_for, render_template
-from flask.ext.fleem.fleem import (FlaskTheme, static_file_url,
+from flask.ext.fleem.fleem import (Fleem, static_file_url,
     template_exists, render_theme_template, get_theme, get_themes_list)
 from flask.ext.fleem.theme import Theme
 from flask.ext.fleem.theme_manager import ThemeManager, packaged_themes_loader, theme_paths_loader, load_themes_from
@@ -23,7 +23,7 @@ join = path.join
 class ThemeObjectCase(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
-        FlaskTheme(app)
+        Fleem(app)
         self.app = app
 
     def test_theme(self):
@@ -40,7 +40,7 @@ class LoadersCase(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        FlaskTheme(app)
+        Fleem(app)
         self.app = app
 
     def test_load_themes_from(self):
@@ -68,7 +68,7 @@ class SetupCase(unittest.TestCase):
         app = Flask(__name__)
         self.manager = ThemeManager(app, 'testing')
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        FlaskTheme(app, app_identifier='testing')
+        Fleem(app, app_identifier='testing')
         self.app = app
 
     def test_manager(self):
@@ -103,7 +103,7 @@ class StaticCase(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        FlaskTheme(app, app_identifier='testing')
+        Fleem(app, app_identifier='testing')
         self.app = app
 
     def test_static_file_url(self):
@@ -118,7 +118,7 @@ class TemplatesCase(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
-        self.ft = FlaskTheme(app, app_identifier='testing')
+        self.ft = Fleem(app, app_identifier='testing')
         self.app = app
 
     def test_template_exists(self):
