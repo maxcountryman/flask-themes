@@ -1,0 +1,136 @@
+import os
+from flask import json, _app_ctx_stack
+from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
+from werkzeug import cached_property
+
+class Theme(object):
+    """
+    This contains a theme's metadata.
+
+    :param path: The path to the theme directory.
+    """
+    def __init__(self, path):
+        #: The theme's root path. All the files in the theme are under this
+        #: path.
+        self.path = os.path.abspath(path)
+
+        with open(os.path.join(self.path, 'info.json')) as fd:
+            self.info = i = json.load(fd)
+
+        #: The theme's name, as given in info.json. This is the human
+        #: readable name.
+        self.name = i['name']
+
+        #: The application identifier given in the theme's info.json. Your
+        #: application will probably want to validate it.
+        self.application = i['application']
+
+        #: The theme's identifier. This is an actual Python identifier,
+        #: and in most situations should match the name of the directory the
+        #: theme is in.
+        self.identifier = i['identifier']
+
+        #: The human readable description. This is the default (English)
+        #: version.
+        self.description = i.get('description')
+
+        #: This is a dictionary of localized versions of the description.
+        #: The language codes are all lowercase, and the ``en`` key is
+        #: preloaded with the base description.
+        self.localized_desc = dict(
+            (k.split('_', 1)[1].lower(), v) for k, v in i.items()
+            if k.startswith('description_')
+        )
+        self.localized_desc.setdefault('en', self.description)
+
+        #: The author's name, as given in info.json. This may or may not
+        #: include their email, so it's best just to display it as-is.
+        self.author = i['author']
+
+        #: A short phrase describing the license, like "GPL", "BSD", "Public
+        #: Domain", or "Creative Commons BY-SA 3.0".
+        self.license = i.get('license')
+
+        #: A URL pointing to the license text online.
+        self.license_url = i.get('license_url')
+
+        #: The URL to the theme's or author's Web site.
+        self.website = i.get('website')
+
+        #: The theme's preview image, within the static folder.
+        self.preview = i.get('preview')
+
+        #: The theme's doctype. This can be ``html4``, ``html5``, or ``xhtml``
+        #: with html5 being the default if not specified.
+        self.doctype = i.get('doctype', 'html5')
+
+        #: Any additional options. These are entirely application-specific,
+        #: and may determine other aspects of the application's behavior.
+        self.options = i.get('options', {})
+
+    @cached_property
+    def static_path(self):
+        """
+        The absolute path to the theme's static files directory.
+        """
+        return os.path.join(self.path, 'static')
+
+    @cached_property
+    def templates_path(self):
+        """
+        The absolute path to the theme's templates directory.
+        """
+        return os.path.join(self.path, 'templates')
+
+    #@cached_property
+    #def license_text(self):
+    #    """
+    #    The contents of the theme's license.txt file, if it exists. This is
+    #    used to display the full license text if necessary. (It is `None` if
+    #    there was not a license.txt.)
+    #    """
+    #    lt_path = os.path.join(self.path, 'license.txt')
+    #    if os.path.exists(lt_path):
+    #        with open(lt_path) as fd:
+    #            return fd.read()
+    #    else:
+    #        return None
+
+    @cached_property
+    def jinja_loader(self):
+        """
+        This is a Jinja2 template loader that loads templates from the theme's
+        ``templates`` directory.
+        """
+        return FileSystemLoader(self.templates_path)
+
+
+### theme template loader
+class ThemeTemplateLoader(BaseLoader):
+    """
+    This is a template loader that loads templates from the current app's
+    loaded themes.
+    """
+    def __init__(self):
+        BaseLoader.__init__(self)
+
+    def get_source(self, environment, template):
+        template = template[8:]
+        try:
+            themename, templatename = template.split('/', 1)
+            ctx = _app_ctx_stack.top
+            theme = ctx.app.theme_manager.themes[themename]
+        except (ValueError, KeyError):
+            raise TemplateNotFound(template)
+        try:
+            return theme.jinja_loader.get_source(environment, templatename)
+        except TemplateNotFound:
+            raise TemplateNotFound(template)
+
+    def list_templates(self):
+        res = []
+        ctx = _app_ctx_stack.top
+        for ident, theme in ctx.app.theme_manager.themes.iteritems():
+            res.extend(('_themes/{}/{}'.format(ident, t)).encode("utf8")
+                       for t in theme.jinja_loader.list_templates())
+        return res
