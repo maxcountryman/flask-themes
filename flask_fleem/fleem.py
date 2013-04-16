@@ -191,7 +191,7 @@ class Fleem(object):
         pass#manifest, bundle = self.return_bundle('js', theme_name, 'rjsmin')
 
     def query_manager(self, query):
-        return getattr(self.manager_cls, query)
+        return getattr(self.theme_manager, query)
 
     @property
     def themes(self):
