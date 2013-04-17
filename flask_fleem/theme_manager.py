@@ -2,13 +2,18 @@ from itertools import chain
 from operator import attrgetter
 import os
 import re
+from time import time
 from theme import Theme
 from flask import current_app
+from flask.ext.assets import Environment
+from webassets.env import RegisterError
 
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
+
 def starchain(i):
     return chain(*i)
+
 
 def list_folders(path):
     """
@@ -65,6 +70,7 @@ def theme_paths_loader(app):
         load_themes_from(path) for path in theme_paths
     )
 
+
 class ThemeManager(object):
     """
     This is responsible for loading and storing all the themes for an
@@ -94,7 +100,9 @@ class ThemeManager(object):
             self.loaders.extend(loaders)
         else:
             self.loaders.extend((packaged_themes_loader, theme_paths_loader))
+        self.asset_env = Environment(self.app)
         self.refresh()
+
 
     @property
     def themes(self):
@@ -106,23 +114,13 @@ class ThemeManager(object):
             self.refresh()
         return self._themes
 
+
     @property
     def list_themes(self):
         """
         This yields all the `Theme` objects, in sorted order.
         """
         return sorted(self.themes.itervalues(), key=attrgetter('identifier'))
-
-
-    #def bind_app(self, app):
-    #    """
-    #    If an app wasn't bound when the manager was created, this will bind
-    #    it. The app must be bound for the loaders to work.
-    #
-    #    :param app: A `~flask.Flask` instance.
-    #    """
-    #    self.app = app
-    #    app.theme_manager = self
 
 
     def valid_app_id(self, app_identifier):
@@ -135,6 +133,18 @@ class ThemeManager(object):
         """
         return self.app_identifier == app_identifier
 
+    def register_theme_assets(self):
+        f = open(os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier)), 'a')
+        extensions_filters = {'.css': 'cssmin', '.js': 'rjsmin'}
+        for t in self.list_themes:
+            for k,v in extensions_filters.iteritems():
+                manifest_entry, bundle = t.return_bundle(k,v)
+                f.write("{} :: {}\n".format(time(), str(manifest_entry)))
+                if bundle:
+                    try:
+                       self.asset_env.register("{}_{}".format(t.identifier, k[1:]), bundle)
+                    except RegisterError, e:
+                        raise e
 
     def refresh(self):
         """
@@ -147,3 +157,4 @@ class ThemeManager(object):
         for theme in starchain(ldr(self.app) for ldr in self.loaders):
             if self.valid_app_id(theme.application):
                 self.themes[theme.identifier] = theme
+        self.register_theme_assets()

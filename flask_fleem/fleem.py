@@ -21,11 +21,12 @@ from werkzeug import LocalProxy
 from theme import Theme, ThemeTemplateLoader
 from theme_manager import ThemeManager
 
-from flask.ext.assets import Environment
 
 containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
 
+
 _fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
+
 
 def get_theme(ident):
     """
@@ -42,7 +43,6 @@ def get_themes_list():
     This returns a list of all the themes in the current app's theme manager,
     sorted by identifier.
     """
-    #ctx = _app_ctx_stack.top
     return list(_fleem.list_themes)
 
 
@@ -151,7 +151,6 @@ class Fleem(object):
                           self.loaders)
         else:
             self.app = None
-        self.packaging_env = Environment(self.app)
 
 
     def init_app(self, app, app_identifier, manager_class, loaders):
@@ -171,8 +170,7 @@ class Fleem(object):
         themes_blueprint.jinja_loader = ThemeTemplateLoader()
         def static(themeid, filename):
             try:
-                #ctx = _app_ctx_stack.top
-                theme = _fleem.themes[themeid]#ctx.app.extensions['fleem_manager'].themes[themeid]
+                theme = _fleem.themes[themeid]
             except KeyError:
                 abort(404)
             return send_from_directory(theme.static_path, filename)

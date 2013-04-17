@@ -7,7 +7,7 @@ This tests the Flask-Themes extension.
 from __future__ import with_statement
 import unittest
 
-from os import path
+import os
 from flask import Flask, url_for, render_template
 from flask.ext.fleem.fleem import (Fleem, static_file_url,
     template_exists, render_theme_template, get_theme, get_themes_list)
@@ -15,9 +15,11 @@ from flask.ext.fleem.theme import Theme
 from flask.ext.fleem.theme_manager import ThemeManager, packaged_themes_loader, theme_paths_loader, load_themes_from
 from jinja2 import FileSystemLoader
 from operator import attrgetter
+from flask.ext.assets import Bundle
+from webassets.env import RegisterError
 
-TESTS = path.dirname(__file__)
-join = path.join
+TESTS = os.path.dirname(__file__)
+join = os.path.join
 
 
 class ThemeObjectCase(unittest.TestCase):
@@ -29,12 +31,14 @@ class ThemeObjectCase(unittest.TestCase):
     def test_theme(self):
         test_path = join(TESTS, 'themes', 'cool')
         cool = Theme(test_path)
+        manifest, bundle = cool.return_bundle('.css', 'cssmin')
         self.assertEqual(cool.name, 'Cool Blue v1')
         self.assertEqual(cool.identifier, 'cool')
-        self.assertEqual(cool.path, path.abspath(test_path))
+        self.assertEqual(cool.path, os.path.abspath(test_path))
         self.assertEqual(cool.static_path, join(cool.path, 'static'))
         self.assertEqual(cool.templates_path, join(cool.path, 'templates'))
         self.assertIsInstance(cool.jinja_loader, FileSystemLoader)
+        self.assertIsInstance(bundle, Bundle)
 
 class LoadersCase(unittest.TestCase):
     def setUp(self):
@@ -68,13 +72,15 @@ class SetupCase(unittest.TestCase):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         self.manager = ThemeManager(app, 'testing')
+
         Fleem(app, app_identifier='testing')
         self.app = app
 
     def test_manager(self):
         self.assertIsInstance(self.app.extensions['fleem_manager'], ThemeManager)
         self.assertEqual(self.manager.themes['cool'].name, self.app.extensions['fleem_manager'].themes['cool'].name)
-        self.manager.refresh()
+        with self.assertRaises(RegisterError):#raised when bundle names are identical
+            self.manager.refresh()
         themeids = self.manager.themes.keys()
         themeids.sort()
         self.assertEqual(themeids, ['cool', 'plain'])

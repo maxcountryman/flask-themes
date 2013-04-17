@@ -3,7 +3,7 @@ from flask import json, current_app, _app_ctx_stack
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from werkzeug import cached_property, LocalProxy
 from flask.ext.assets import Bundle
-#from fleem import _fleem
+
 _fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
 
 class Theme(object):
@@ -73,26 +73,23 @@ class Theme(object):
 
     def theme_files_of(self, extension):
         listing_files = []
-        listing_files.extend([fname for fname in os.listdir(self.static_path) if os.path.splitext(fname)[-1] == extension])
-        if os.path.exists(os.path.join(self.static_path, extension)):
-            listing_files.extend([fname for fname in os.listdir(os.path.join(self.static_path, extension)) \
+        extension_absolute = extension[1:]
+        if os.path.exists(self.static_path):
+            listing_files.extend([fname for fname in os.listdir(self.static_path) if os.path.splitext(fname)[-1] == extension])
+        if os.path.exists(os.path.join(self.static_path, extension_absolute)):
+            listing_files.extend([fname for fname in os.listdir(os.path.join(self.static_path, extension_absolute)) \
                                   if os.path.splitext(fname)[-1] == extension])
         return listing_files
 
-    def return_bundle(self, extension, resource_filter, bundler=None):
-        if bundler:
-            try:
-                resource_tag = "theme-{}.{}".format(self.identifier, extension)
-                resources = self.theme_files_of(extension)
-                manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
-                return manifest, bundler(*resources, output=resource_tag, filters=resource_filter)
-            except:
-                pass
+    def return_bundle(self, extension, resource_filter):
+        resource_tag = "theme-{}{}".format(self.identifier, extension)
+        resources = self.theme_files_of(extension)
+        if resources:
+            manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
+            return manifest, Bundle(*resources, output=resource_tag, filters=resource_filter)
+        else:
+            return "no resources for {} {}".format(extension, self.name), None
 
-    def register_theme_resources(self, themes, extension, resource_filter):
-        f = open(path.join(MODULE_STATIC, "{}.manifest".format(name)), 'a')
-        for theme in themes:
-             manifest_entry, bundle = theme.return_bundle(extension, resource_filter, Bundle)
 
     @cached_property
     def static_path(self):
@@ -133,7 +130,7 @@ class Theme(object):
     def __repr__(self):
         return "<Theme object | name: {} | application_identifier: {} | identifier: {} >".format(self.name, self.application, self.identifier)
 
-### theme template loader
+
 class ThemeTemplateLoader(BaseLoader):
     """
     This is a template loader that loads templates from the current app's
@@ -146,7 +143,6 @@ class ThemeTemplateLoader(BaseLoader):
         template = template[8:]
         try:
             themename, templatename = template.split('/', 1)
-            #ctx = _app_ctx_stack.top
             theme = _fleem.themes[themename]
         except (ValueError, KeyError):
             raise TemplateNotFound(template)
@@ -157,7 +153,6 @@ class ThemeTemplateLoader(BaseLoader):
 
     def list_templates(self):
         res = []
-        #ctx = _app_ctx_stack.top
         for ident, theme in _fleem.themes.iteritems():
             res.extend(('_themes/{}/{}'.format(ident, t)).encode("utf8")
                        for t in theme.jinja_loader.list_templates())
