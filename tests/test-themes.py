@@ -66,14 +66,14 @@ class LoadersCase(unittest.TestCase):
 class SetupCase(unittest.TestCase):
     def setUp(self):
         app = Flask(__name__)
-        self.manager = ThemeManager(app, 'testing')
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
+        self.manager = ThemeManager(app, 'testing')
         Fleem(app, app_identifier='testing')
         self.app = app
 
     def test_manager(self):
-        self.assertIsInstance(self.app.theme_manager, ThemeManager)
-        self.assertEqual(self.manager.themes['cool'].name, self.app.theme_manager.themes['cool'].name)
+        self.assertIsInstance(self.app.extensions['fleem_manager'], ThemeManager)
+        self.assertEqual(self.manager.themes['cool'].name, self.app.extensions['fleem_manager'].themes['cool'].name)
         self.manager.refresh()
         themeids = self.manager.themes.keys()
         themeids.sort()
@@ -81,15 +81,15 @@ class SetupCase(unittest.TestCase):
         self.assertEqual(self.manager.themes['cool'].name, 'Cool Blue v2')
 
     def test_setup_themes(self):
-        self.assertTrue(hasattr(self.app, 'theme_manager'))
+        self.assertTrue(self.app.extensions['fleem_manager'])
         self.assertIn('_themes', self.app.blueprints)
         self.assertIn('theme', self.app.jinja_env.globals)
         self.assertIn('theme_static', self.app.jinja_env.globals)
 
     def test_get_helpers(self):
         with self.app.test_request_context('/'):
-            cool = self.app.theme_manager.themes['cool']
-            plain = self.app.theme_manager.themes['plain']
+            cool = self.app.extensions['fleem_manager'].themes['cool']
+            plain = self.app.extensions['fleem_manager'].themes['plain']
             self.assertIs(get_theme('cool'), cool)
             self.assertIs(get_theme('plain'), plain)
             tl = get_themes_list()

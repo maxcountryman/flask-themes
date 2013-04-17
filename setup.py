@@ -17,15 +17,17 @@ Links
 
 
 """
+from flask_fleem import __version__
 from setuptools import setup
 import sys
-requires = ['Flask>=0.9']
+requires = ['Flask>=0.9',
+            'Flask-Assets>=0.8']
 if sys.version_info < (2, 6):
     requires.append('simplejson')
 
 setup(
     name='Flask-Fleem',
-    version='0.0.1',
+    version=__version__,
     url='http://',
     license='MIT',
     author='thrisp/hurrata',

@@ -13,20 +13,19 @@ It takes care of:
 from __future__ import with_statement
 
 from flask import (Blueprint, send_from_directory, render_template,
-                   _app_ctx_stack, abort, url_for)
+                   _app_ctx_stack, abort, url_for, current_app)
 from jinja2 import contextfunction
 from jinja2.loaders import TemplateNotFound
+from werkzeug import LocalProxy
 
 from theme import Theme, ThemeTemplateLoader
 from theme_manager import ThemeManager
 
-
-try:
-    from flask.ext.assets import Environment, Bundle
-except:
-    pass
+from flask.ext.assets import Environment
 
 containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
+
+_fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
 
 def get_theme(ident):
     """
@@ -35,8 +34,7 @@ def get_theme(ident):
 
     :param ident: The theme identifier.
     """
-    ctx = _app_ctx_stack.top
-    return ctx.app.theme_manager.themes[ident]
+    return _fleem.themes[ident]
 
 
 def get_themes_list():
@@ -44,13 +42,14 @@ def get_themes_list():
     This returns a list of all the themes in the current app's theme manager,
     sorted by identifier.
     """
-    ctx = _app_ctx_stack.top
-    return list(ctx.app.theme_manager.list_themes)
+    #ctx = _app_ctx_stack.top
+    return list(_fleem.list_themes)
 
 
 def template_exists(templatename):
-    ctx = _app_ctx_stack.top
-    return templatename in containable(ctx.app.jinja_env.list_templates())
+    #ctx = _app_ctx_stack.top
+    #return templatename in containable(ctx.app.jinja_env.list_templates())
+    return templatename in containable(current_app.jinja_env.list_templates())
 
 
 def active_theme(ctx):
@@ -121,6 +120,7 @@ def render_theme_template(theme, template_name, _fallback=True, **context):
         else:
             raise
 
+
 class Fleem(object):
     """
     :param app: The `~flask.Flask` instance to set up themes for.
@@ -137,12 +137,10 @@ class Fleem(object):
                        loaders=None,
                        app_identifier=None,
                        manager_cls=ThemeManager,
-                       theme_manager=None,
                        theme_url_prefix="/_themes"):
         self.loaders = loaders
         self.app_identifier = app_identifier
         self.manager_cls = manager_cls
-        self.theme_manager = theme_manager
         self.theme_url_prefix = theme_url_prefix
 
         if app is not None:
@@ -153,21 +151,18 @@ class Fleem(object):
                           self.loaders)
         else:
             self.app = None
-
-        if Environment and Bundle:
-            if self.app:
-                self.packaging = True
-                self.theming_assets = Environment(self.app)
+        self.packaging_env = Environment(self.app)
 
 
     def init_app(self, app, app_identifier, manager_class, loaders):
         if app_identifier is None:
             self.app_identifier = app.import_name
-        self.theme_manager = manager_class(app, self.app_identifier, loaders=loaders)
         app.jinja_env.globals['theme'] = global_theme_template
         app.jinja_env.globals['theme_static'] = global_theme_static
         app.register_blueprint(self._blueprint, url_prefix=self.theme_url_prefix)
-
+        theme_manager = manager_class(app, self.app_identifier, loaders=loaders)
+        app.extensions['fleem_manager'] = theme_manager
+        return theme_manager
 
     @property
     def _blueprint(self):
@@ -176,35 +171,10 @@ class Fleem(object):
         themes_blueprint.jinja_loader = ThemeTemplateLoader()
         def static(themeid, filename):
             try:
-                ctx = _app_ctx_stack.top
-                theme = ctx.app.theme_manager.themes[themeid]
+                #ctx = _app_ctx_stack.top
+                theme = _fleem.themes[themeid]#ctx.app.extensions['fleem_manager'].themes[themeid]
             except KeyError:
                 abort(404)
             return send_from_directory(theme.static_path, filename)
         themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static', view_func=static)
         return themes_blueprint
-
-    def register_theme_css(self, theme):
-        pass#manifest, bundle = self.return_bundle('css', theme_name, 'cssmin')
-
-    def register_theme_js(self, theme):
-        pass#manifest, bundle = self.return_bundle('js', theme_name, 'rjsmin')
-
-    def query_manager(self, query):
-        return getattr(self.theme_manager, query)
-
-    @property
-    def themes(self):
-        return self.query_manager('themes')
-
-    @property
-    def list_themes(self):
-        return self.query_manager('list_themes')
-
-    @property
-    def list_loaders(self):
-        return self.query_manager('loaders')
-
-    @property
-    def refresh_themes(self):
-        return self.query_manager('refresh')()

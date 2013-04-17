@@ -3,6 +3,7 @@ from operator import attrgetter
 import os
 import re
 from theme import Theme
+from flask import current_app
 
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
@@ -85,16 +86,15 @@ class ThemeManager(object):
                     order.
     """
     def __init__(self, app, app_identifier, loaders=None):
-        self.bind_app(app)
+        self.app = app
         self.app_identifier = app_identifier
         self._themes = None
-
-        #: This is a list of the loaders that will be used to load the themes.
         self.loaders = []
         if loaders:
             self.loaders.extend(loaders)
         else:
             self.loaders.extend((packaged_themes_loader, theme_paths_loader))
+        self.refresh()
 
     @property
     def themes(self):
@@ -114,15 +114,15 @@ class ThemeManager(object):
         return sorted(self.themes.itervalues(), key=attrgetter('identifier'))
 
 
-    def bind_app(self, app):
-        """
-        If an app wasn't bound when the manager was created, this will bind
-        it. The app must be bound for the loaders to work.
-
-        :param app: A `~flask.Flask` instance.
-        """
-        self.app = app
-        app.theme_manager = self
+    #def bind_app(self, app):
+    #    """
+    #    If an app wasn't bound when the manager was created, this will bind
+    #    it. The app must be bound for the loaders to work.
+    #
+    #    :param app: A `~flask.Flask` instance.
+    #    """
+    #    self.app = app
+    #    app.theme_manager = self
 
 
     def valid_app_id(self, app_identifier):

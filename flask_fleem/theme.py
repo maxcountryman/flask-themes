@@ -1,7 +1,10 @@
 import os
-from flask import json, _app_ctx_stack
+from flask import json, current_app, _app_ctx_stack
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
-from werkzeug import cached_property
+from werkzeug import cached_property, LocalProxy
+from flask.ext.assets import Bundle
+#from fleem import _fleem
+_fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
 
 class Theme(object):
     """
@@ -86,6 +89,11 @@ class Theme(object):
             except:
                 pass
 
+    def register_theme_resources(self, themes, extension, resource_filter):
+        f = open(path.join(MODULE_STATIC, "{}.manifest".format(name)), 'a')
+        for theme in themes:
+             manifest_entry, bundle = theme.return_bundle(extension, resource_filter, Bundle)
+
     @cached_property
     def static_path(self):
         """
@@ -138,8 +146,8 @@ class ThemeTemplateLoader(BaseLoader):
         template = template[8:]
         try:
             themename, templatename = template.split('/', 1)
-            ctx = _app_ctx_stack.top
-            theme = ctx.app.theme_manager.themes[themename]
+            #ctx = _app_ctx_stack.top
+            theme = _fleem.themes[themename]
         except (ValueError, KeyError):
             raise TemplateNotFound(template)
         try:
@@ -149,8 +157,8 @@ class ThemeTemplateLoader(BaseLoader):
 
     def list_templates(self):
         res = []
-        ctx = _app_ctx_stack.top
-        for ident, theme in ctx.app.theme_manager.themes.iteritems():
+        #ctx = _app_ctx_stack.top
+        for ident, theme in _fleem.themes.iteritems():
             res.extend(('_themes/{}/{}'.format(ident, t)).encode("utf8")
                        for t in theme.jinja_loader.list_templates())
         return res
