@@ -35,7 +35,7 @@ class Theme(object):
 
         #: The human readable description. This is the default (English)
         #: version.
-        self.description = i.get('description')
+        self.description = i.get('description', "None")
 
         #: This is a dictionary of localized versions of the description.
         #: The language codes are all lowercase, and the ``en`` key is

@@ -72,15 +72,13 @@ class SetupCase(unittest.TestCase):
         app = Flask(__name__)
         app.config['THEME_PATHS'] = [join(TESTS, 'morethemes')]
         self.manager = ThemeManager(app, 'testing')
-
         Fleem(app, app_identifier='testing')
         self.app = app
 
-    def test_manager(self):
+    def test_theme_manager(self):
         self.assertIsInstance(self.app.extensions['fleem_manager'], ThemeManager)
         self.assertEqual(self.manager.themes['cool'].name, self.app.extensions['fleem_manager'].themes['cool'].name)
-        with self.assertRaises(RegisterError):#raised when bundle names are identical
-            self.manager.refresh()
+        self.manager.refresh()
         themeids = self.manager.themes.keys()
         themeids.sort()
         self.assertEqual(themeids, ['cool', 'plain'])

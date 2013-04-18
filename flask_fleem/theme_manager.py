@@ -100,9 +100,14 @@ class ThemeManager(object):
             self.loaders.extend(loaders)
         else:
             self.loaders.extend((packaged_themes_loader, theme_paths_loader))
-        self.asset_env = Environment(self.app)
+        self.asset_env = self.set_asset_env()
         self.refresh()
 
+
+    def set_asset_env(self):
+        e = Environment(self.app)
+        e.url_expire = True
+        return e
 
     @property
     def themes(self):
@@ -141,10 +146,14 @@ class ThemeManager(object):
                 manifest_entry, bundle = t.return_bundle(k,v)
                 f.write("{} :: {}\n".format(time(), str(manifest_entry)))
                 if bundle:
-                    try:
-                       self.asset_env.register("{}_{}".format(t.identifier, k[1:]), bundle)
-                    except RegisterError, e:
-                        raise e
+                    bundle_name = "{}_{}".format(t.identifier, k[1:])
+                    if bundle_name in self.asset_env:
+                        pass
+                    else:
+                        try:
+                            self.asset_env.register(bundle_name, bundle)
+                        except RegisterError, e:
+                            raise e
 
     def refresh(self):
         """
