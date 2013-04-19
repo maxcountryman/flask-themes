@@ -1,3 +1,21 @@
 Fleem
 
-forked from flask-themes
+forked from flask-themes with a few differences:
+
+- updated to integrate with recent flask versions
+
+- integrates resources with webassets/flask-assets
+
+TODO:
+
+- refactor the directory parsing kludge of the bundling/resource registry
+
+- A tag similar to the webassets that would handle resolving the current themes resources
+
+    e.g.
+
+    {% assets "current_theme_js" %}
+        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+
+suggestions/input appreciated

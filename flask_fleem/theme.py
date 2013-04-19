@@ -85,7 +85,7 @@ class Theme(object):
         return lf
 
     def return_bundle(self, extension, resource_filter):
-        resource_tag = "theme-{}-packed{}".format(self.identifier, extension)
+        resource_tag = "{}/theme-{}-packed{}".format(self.identifier, extension)
         resources = self.theme_files_of(extension)
         if resources:
             manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
