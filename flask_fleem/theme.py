@@ -75,11 +75,11 @@ class Theme(object):
         lf = []
         extension_absolute = extension[1:]
         if os.path.exists(self.static_path):
-            lf.extend([os.path.join(self.path, fname) for fname \
+            lf.extend([os.path.join(self.static_path, fname) for fname \
                        in os.listdir(self.static_path) \
                        if os.path.splitext(fname)[-1] == extension])
         if os.path.exists(os.path.join(self.static_path, extension_absolute)):
-            lf.extend([os.path.join(self.static_path, fname) for fname \
+            lf.extend([os.path.join(self.static_path, extension_absolute, fname) for fname \
                        in os.listdir(os.path.join(self.static_path, extension_absolute)) \
                        if os.path.splitext(fname)[-1] == extension])
         return lf
