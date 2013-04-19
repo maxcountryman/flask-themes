@@ -105,9 +105,10 @@ class ThemeManager(object):
 
 
     def set_asset_env(self):
-        e = Environment(self.app)
-        e.url_expire = True
-        return e
+        if self.app.jinja_env.assets_environment:
+            return self.app.jinja_env.assets_environment
+        else:
+            return Environment(self.app)
 
     @property
     def themes(self):
