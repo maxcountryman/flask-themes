@@ -72,23 +72,26 @@ class Theme(object):
         self.options = i.get('options', {})
 
     def theme_files_of(self, extension):
-        listing_files = []
+        lf = []
         extension_absolute = extension[1:]
         if os.path.exists(self.static_path):
-            listing_files.extend([fname for fname in os.listdir(self.static_path) if os.path.splitext(fname)[-1] == extension])
+            lf.extend([os.path.join(self.path, fname) for fname \
+                       in os.listdir(self.static_path) \
+                       if os.path.splitext(fname)[-1] == extension])
         if os.path.exists(os.path.join(self.static_path, extension_absolute)):
-            listing_files.extend([fname for fname in os.listdir(os.path.join(self.static_path, extension_absolute)) \
-                                  if os.path.splitext(fname)[-1] == extension])
-        return listing_files
+            lf.extend([os.path.join(self.path, fname) for fname \
+                       in os.listdir(os.path.join(self.static_path, extension_absolute)) \
+                       if os.path.splitext(fname)[-1] == extension])
+        return lf
 
     def return_bundle(self, extension, resource_filter):
-        resource_tag = "theme-{}{}".format(self.identifier, extension)
+        resource_tag = "theme-{}-packed{}".format(self.identifier, extension)
         resources = self.theme_files_of(extension)
         if resources:
             manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
             return manifest, Bundle(*resources, output=resource_tag, filters=resource_filter)
         else:
-            return "no resources for {} {}".format(extension, self.name), None
+            return "No {} resources for {}".format(extension, self.name), None
 
 
     @cached_property
