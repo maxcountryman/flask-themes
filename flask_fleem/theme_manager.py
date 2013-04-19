@@ -105,7 +105,7 @@ class ThemeManager(object):
 
 
     def set_asset_env(self):
-        if self.app.jinja_env.assets_environment:
+        if hasattr(self.app.jinja_env, 'assets_environment'):
             return self.app.jinja_env.assets_environment
         else:
             return Environment(self.app)
