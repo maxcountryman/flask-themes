@@ -155,11 +155,11 @@ class Fleem(object):
 
     def init_app(self, app, app_identifier, manager_class, loaders):
         if app_identifier is None:
-            self.app_identifier = app.import_name
+            app_identifier = app.import_name
         app.jinja_env.globals['theme'] = global_theme_template
         app.jinja_env.globals['theme_static'] = global_theme_static
         app.register_blueprint(self._blueprint, url_prefix=self.theme_url_prefix)
-        theme_manager = manager_class(app, self.app_identifier, loaders=loaders)
+        theme_manager = manager_class(app, app_identifier, loaders=loaders)
         app.extensions['fleem_manager'] = theme_manager
         return theme_manager
 

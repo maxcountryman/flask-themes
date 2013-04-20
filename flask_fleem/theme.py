@@ -1,5 +1,6 @@
 import os
-from flask import json, current_app, _app_ctx_stack
+import yaml
+from flask import current_app, _app_ctx_stack
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from werkzeug import cached_property, LocalProxy
 from flask.ext.assets import Bundle
@@ -17,59 +18,36 @@ class Theme(object):
         #: path.
         self.path = os.path.abspath(path)
 
-        with open(os.path.join(self.path, 'info.json')) as fd:
-            self.info = i = json.load(fd)
+        with open(os.path.join(self.path, 'info.yaml')) as fd:
+            self.info = i = yaml.load(fd)
 
-        #: The theme's name, as given in info.json. This is the human
+        if not all(k in i for k in ('name', 'application', 'identifier')):
+            raise AttributeError("Theme configuration must contain: name, application, identifier")
+
+        #: The theme's name, as given in info.yaml. This is the human
         #: readable name.
-        self.name = i['name']
+        self.name = i.pop('name', 'No name provided')
 
-        #: The application identifier given in the theme's info.json. Your
+        #: The application identifier given in the theme's info.yaml. Your
         #: application will probably want to validate it.
-        self.application = i['application']
+        self.application = i.pop('application', 'No application provided')
 
         #: The theme's identifier. This is an actual Python identifier,
         #: and in most situations should match the name of the directory the
         #: theme is in.
-        self.identifier = i['identifier']
-
-        #: The human readable description. This is the default (English)
-        #: version.
-        self.description = i.get('description', "None")
+        self.identifier = i.pop('identifier', 'No identifier provided')
 
         #: This is a dictionary of localized versions of the description.
         #: The language codes are all lowercase, and the ``en`` key is
         #: preloaded with the base description.
-        self.localized_desc = dict(
-            (k.split('_', 1)[1].lower(), v) for k, v in i.items()
-            if k.startswith('description_')
-        )
-        self.localized_desc.setdefault('en', self.description)
+        #self.localized_desc = dict(
+        #    (k.split('_', 1)[1].lower(), v) for k, v in i.items()
+        #    if k.startswith('description_')
+        #)
+        #self.localized_desc.setdefault('en', self.description)
 
-        #: The author's name, as given in info.json. This may or may not
-        #: include their email, so it's best just to display it as-is.
-        self.author = i['author']
-
-        #: A short phrase describing the license, like "GPL", "BSD", "Public
-        #: Domain", or "Creative Commons BY-SA 3.0".
-        self.license = i.get('license')
-
-        #: A URL pointing to the license text online.
-        self.license_url = i.get('license_url')
-
-        #: The URL to the theme's or author's Web site.
-        self.website = i.get('website')
-
-        #: The theme's preview image, within the static folder.
-        self.preview = i.get('preview')
-
-        #: The theme's doctype. This can be ``html4``, ``html5``, or ``xhtml``
-        #: with html5 being the default if not specified.
-        self.doctype = i.get('doctype', 'html5')
-
-        #: Any additional options. These are entirely application-specific,
-        #: and may determine other aspects of the application's behavior.
-        self.options = i.get('options', {})
+        for k,v in i.iteritems():
+            self.k = v
 
     def theme_files_of(self, extension):
         lf = []
@@ -85,7 +63,7 @@ class Theme(object):
         return lf
 
     def return_bundle(self, extension, resource_filter):
-        resource_tag = "{}/theme-{}-packed{}".format(self.identifier, extension)
+        resource_tag = "{}/theme-{}-packed{}".format(extension[1:], self.identifier, extension)
         resources = self.theme_files_of(extension)
         if resources:
             manifest = "{} for theme {} == {}".format(extension, self.name, [r for r in resources])
@@ -101,12 +79,14 @@ class Theme(object):
         """
         return os.path.join(self.path, 'static')
 
+
     @cached_property
     def templates_path(self):
         """
         The absolute path to the theme's templates directory.
         """
         return os.path.join(self.path, 'templates')
+
 
     @cached_property
     def license_text(self):
@@ -122,6 +102,7 @@ class Theme(object):
         else:
             return None
 
+
     @cached_property
     def jinja_loader(self):
         """
@@ -129,6 +110,7 @@ class Theme(object):
         ``templates`` directory.
         """
         return FileSystemLoader(self.templates_path)
+
 
     def __repr__(self):
         return "<Theme object | name: {} | application_identifier: {} | identifier: {} >".format(self.name, self.application, self.identifier)
@@ -142,6 +124,7 @@ class ThemeTemplateLoader(BaseLoader):
     def __init__(self):
         BaseLoader.__init__(self)
 
+
     def get_source(self, environment, template):
         template = template[8:]
         try:
@@ -153,6 +136,7 @@ class ThemeTemplateLoader(BaseLoader):
             return theme.jinja_loader.get_source(environment, templatename)
         except TemplateNotFound:
             raise TemplateNotFound(template)
+
 
     def list_templates(self):
         res = []
