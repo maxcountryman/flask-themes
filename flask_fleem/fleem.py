@@ -163,6 +163,7 @@ class Fleem(object):
         app.extensions['fleem_manager'] = theme_manager
         return theme_manager
 
+
     @property
     def _blueprint(self):
         themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')

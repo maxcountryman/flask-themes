@@ -22,7 +22,14 @@ class Theme(object):
             self.info = i = yaml.load(fd)
 
         if not all(k in i for k in ('name', 'application', 'identifier')):
-            raise AttributeError("Theme configuration must contain: name, application, identifier")
+            raise AttributeError("""
+                                 Theme configuration MUST contain:\n
+                                 - name\n
+                                 - application\n
+                                 - identifier\n
+                                 theme configuration contained:
+                                 {}
+                                 """).format(i)
 
         #: The theme's name, as given in info.yaml. This is the human
         #: readable name.
@@ -47,7 +54,7 @@ class Theme(object):
         #self.localized_desc.setdefault('en', self.description)
 
         for k,v in i.iteritems():
-            self.k = v
+            setattr(self, k, v)
 
     def theme_files_of(self, extension):
         lf = []

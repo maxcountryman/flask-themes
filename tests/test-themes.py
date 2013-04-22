@@ -35,6 +35,7 @@ class ThemeObjectCase(unittest.TestCase):
         self.assertEqual(cool.name, 'Cool Blue v1')
         self.assertEqual(cool.identifier, 'cool')
         self.assertEqual(cool.path, os.path.abspath(test_path))
+        self.assertEqual(cool.random_attribute, "totally random")
         self.assertEqual(cool.static_path, join(cool.path, 'static'))
         self.assertEqual(cool.templates_path, join(cool.path, 'templates'))
         self.assertIsInstance(cool.jinja_loader, FileSystemLoader)
