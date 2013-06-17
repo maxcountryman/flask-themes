@@ -47,9 +47,23 @@ def get_themes_list():
 
 
 def template_exists(templatename):
-    #ctx = _app_ctx_stack.top
-    #return templatename in containable(ctx.app.jinja_env.list_templates())
     return templatename in containable(current_app.jinja_env.list_templates())
+
+
+@contextfunction
+def global_theme_static(ctx, filename, external=False):
+    theme = active_theme(ctx)
+    return static_file_url(theme, filename, external)
+
+
+@contextfunction
+def global_theme_template(ctx, templatename, fallback=True):
+    theme = active_theme(ctx)
+    templatepath = '_themes/{}/{}'.format(theme, templatename)
+    if (not fallback) or template_exists(templatepath):
+        return templatepath
+    else:
+        return templatename
 
 
 def active_theme(ctx):
@@ -74,22 +88,6 @@ def static_file_url(theme, filename, external=False):
         theme = theme.identifier
     return url_for('_themes.static', themeid=theme, filename=filename,
                    _external=external)
-
-
-@contextfunction
-def global_theme_template(ctx, templatename, fallback=True):
-    theme = active_theme(ctx)
-    templatepath = '_themes/{}/{}'.format(theme, templatename)
-    if (not fallback) or template_exists(templatepath):
-        return templatepath
-    else:
-        return templatename
-
-
-@contextfunction
-def global_theme_static(ctx, filename, external=False):
-    theme = active_theme(ctx)
-    return static_file_url(theme, filename, external)
 
 
 def render_theme_template(theme, template_name, _fallback=True, **context):

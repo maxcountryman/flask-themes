@@ -171,14 +171,18 @@ class TemplatesCase(unittest.TestCase):
             url = static_file_url('plain', 'style.css')
             self.assertEqual(data, 'Application, Plain, {}'.format(url))
 
+    def test_extend(self):
+        with self.app.test_request_context('/'):
+            data = render_theme_template('cool', 'extending.html').strip()
+            self.assertIsNotNone(data)
+            self.assertEqual(data, 'hello I am theme_layout')
+
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(ThemeObjectCase))
-    suite.addTest(unittest.makeSuite(LoadersCase))
-    suite.addTest(unittest.makeSuite(SetupCase))
-    suite.addTest(unittest.makeSuite(StaticCase))
-    suite.addTest(unittest.makeSuite(TemplatesCase))
+    cases = (ThemeObjectCase, LoadersCase, SetupCase, StaticCase, TemplatesCase)
+    for c in cases:
+        suite.addTest(unittest.makeSuite(c))
     return suite
 
 if __name__ == '__main__':

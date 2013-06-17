@@ -2,20 +2,16 @@ Fleem
 
 forked from flask-themes with a few differences:
 
-- updated to integrate with recent flask versions
+- updated for recent flask versions
 
 - integrates resources with webassets/flask-assets
+
+- yaml config files for themes, with greater flexibility in config file specification
 
 TODO:
 
 - refactor the directory parsing kludge of the bundling/resource registry
 
-- A tag similar to the webassets that would handle resolving the current themes resources
-
-    e.g.
-
-    {% assets "current_theme_js" %}
-        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-    {% endassets %}
+- provide fallback theme for render_template, then fallback to local templates
 
 suggestions/input appreciated

@@ -140,7 +140,11 @@ class ThemeManager(object):
         return self.app_identifier == app_identifier
 
     def register_theme_assets(self):
-        f = open(os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier)), 'a')
+        try:
+            f = open(os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier)), 'a')
+        except:
+            f = open(os.path.join(os.path.dirname(__file__), "{}.manifest".format(self.app_identifier)), 'a')
+            f.write(str( os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier) )))
         extensions_filters = {'.css': 'cssmin', '.js': 'rjsmin'}
         for t in self.list_themes:
             for k,v in extensions_filters.iteritems():

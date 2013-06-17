@@ -4,30 +4,23 @@
 themesandbox.py
 ===============
 A sandbox to play around with themes in.
-
-:copyright: 2010 Matthew "LeafStorm" Frazier
-:license:   MIT/X11, see LICENSE for details
 """
+
 import yaml
 from flask import (Flask, url_for, redirect, session, Markup, abort)
-from flask.ext.themes import (setup_themes, render_theme_template,
+from flask.ext.fleem import (Fleem, render_theme_template,
                              get_themes_list)
 from operator import attrgetter
 
-# default settings
 
 DEFAULT_THEME = 'calmblue'
 SECRET_KEY = 'not really secret'
 
 
-# application
-
 app = Flask(__name__)
 app.config.from_object(__name__)
-setup_themes(app, app_identifier='themesandbox')
+Fleem(app, app_identifier='themesandbox')
 
-
-# data
 
 class Post(object):
     def __init__(self, data):
@@ -35,7 +28,7 @@ class Post(object):
         self.body = data['body']
         self.title = data['title']
         self.created = data['created']
-    
+
     @property
     def content(self):
         return Markup('\n\n'.join(
@@ -47,7 +40,7 @@ class PostStore(object):
     def __init__(self):
         self.by_date = []
         self.by_slug = {}
-    
+
     def add_posts(self, post_data):
         posts = [Post(post) for post in post_data]
         for post in posts:
@@ -65,17 +58,14 @@ with app.open_resource('posts.yaml') as fd:
     store.add_posts(post_data)
 
 
-ABOUT_TEXT = Markup('<p>This is a demonstration of Flask-Themes.</p>')
+ABOUT_TEXT = Markup('<p>This is a demonstration of Flask-Fleem.</p>')
 
-
-# themes
 
 def render(template, **context):
     theme = session.get('theme', app.config['DEFAULT_THEME'])
     return render_theme_template(theme, template, **context)
 
 
-# views
 
 @app.route('/')
 def index():

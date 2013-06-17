@@ -1,8 +1,0 @@
-{
-    "application": "themesandbox", 
-    "identifier": "calmblue", 
-    "name": "Calm Blue", 
-    "author": "LeafStorm",
-    "description": "A calm, blue theme based on Flaskr.",
-    "license": "MIT/X11"
-}

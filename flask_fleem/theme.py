@@ -14,8 +14,6 @@ class Theme(object):
     :param path: The path to the theme directory.
     """
     def __init__(self, path):
-        #: The theme's root path. All the files in the theme are under this
-        #: path.
         self.path = os.path.abspath(path)
 
         with open(os.path.join(self.path, 'info.yaml')) as fd:
@@ -31,8 +29,7 @@ class Theme(object):
                                  {}
                                  """).format(i)
 
-        #: The theme's name, as given in info.yaml. This is the human
-        #: readable name.
+        #: The theme's human readable name, as given in info.yaml.
         self.name = i.pop('name', 'No name provided')
 
         #: The application identifier given in the theme's info.yaml. Your
@@ -44,29 +41,38 @@ class Theme(object):
         #: theme is in.
         self.identifier = i.pop('identifier', 'No identifier provided')
 
-        #: This is a dictionary of localized versions of the description.
-        #: The language codes are all lowercase, and the ``en`` key is
-        #: preloaded with the base description.
-        #self.localized_desc = dict(
-        #    (k.split('_', 1)[1].lower(), v) for k, v in i.items()
-        #    if k.startswith('description_')
-        #)
-        #self.localized_desc.setdefault('en', self.description)
-
-        for k,v in i.iteritems():
+        for k,v in iter(i.items()):
             setattr(self, k, v)
+
+    def join_or_no(self, base_path, *join_paths):
+        if join_paths:
+            return os.path.join(base_path, *join_paths)
+        else:
+            return base_path
+
+    def has_path(self, base_path, *join_paths):
+        return os.path.exists(self.join_or_no(base_path, *join_paths))
+
+    def ext_fname(self, fname, ext):
+        return os.path.splitext(fname)[-1] == ext
+
+    def list_dirs(self, base_path, *join_paths):
+        return os.listdir(self.join_or_no(base_path, *join_paths))
+
+    def extension_absolute(self, ext):
+        return ext[1:]
 
     def theme_files_of(self, extension):
         lf = []
-        extension_absolute = extension[1:]
-        if os.path.exists(self.static_path):
-            lf.extend([os.path.join(self.static_path, fname) for fname \
-                       in os.listdir(self.static_path) \
-                       if os.path.splitext(fname)[-1] == extension])
-        if os.path.exists(os.path.join(self.static_path, extension_absolute)):
-            lf.extend([os.path.join(self.static_path, extension_absolute, fname) for fname \
-                       in os.listdir(os.path.join(self.static_path, extension_absolute)) \
-                       if os.path.splitext(fname)[-1] == extension])
+        ext_abs = self.extension_absolute(extension)
+        if self.has_path(self.static_path):
+            lf.extend([self.join_or_no(self.static_path, fname) for fname \
+                       in self.list_dirs(self.static_path) \
+                       if self.ext_fname(fname, extension)])
+        if self.has_path(self.static_path, ext_abs):
+            lf.extend([self.join_or_no(self.static_path, ext_abs, fname) for fname \
+                       in self.list_dirs(self.static_path, ext_abs) \
+                       if self.ext_fname(fname, extension)])
         return lf
 
     def return_bundle(self, extension, resource_filter):
@@ -78,7 +84,6 @@ class Theme(object):
         else:
             return "No {} resources for {}".format(extension, self.name), None
 
-
     @cached_property
     def static_path(self):
         """
@@ -86,29 +91,12 @@ class Theme(object):
         """
         return os.path.join(self.path, 'static')
 
-
     @cached_property
     def templates_path(self):
         """
         The absolute path to the theme's templates directory.
         """
         return os.path.join(self.path, 'templates')
-
-
-    @cached_property
-    def license_text(self):
-        """
-        The contents of the theme's license.txt file, if it exists. This is
-        used to display the full license text if necessary. (It is `None` if
-        there was not a license.txt.)
-        """
-        lt_path = os.path.join(self.path, 'license.txt')
-        if os.path.exists(lt_path):
-            with open(lt_path) as fd:
-                return fd.read()
-        else:
-            return None
-
 
     @cached_property
     def jinja_loader(self):
@@ -118,9 +106,13 @@ class Theme(object):
         """
         return FileSystemLoader(self.templates_path)
 
+    def bundle_name(self, asset_type):
+        return "{}_{}".format(self.identifier, asset_type)
 
     def __repr__(self):
-        return "<Theme object | name: {} | application_identifier: {} | identifier: {} >".format(self.name, self.application, self.identifier)
+        return "<Theme: {} | app_id: {} | id: {} >".format(self.name,
+                                                           self.application,
+                                                           self.identifier)
 
 
 class ThemeTemplateLoader(BaseLoader):
@@ -130,7 +122,6 @@ class ThemeTemplateLoader(BaseLoader):
     """
     def __init__(self):
         BaseLoader.__init__(self)
-
 
     def get_source(self, environment, template):
         template = template[8:]
@@ -143,7 +134,6 @@ class ThemeTemplateLoader(BaseLoader):
             return theme.jinja_loader.get_source(environment, templatename)
         except TemplateNotFound:
             raise TemplateNotFound(template)
-
 
     def list_templates(self):
         res = []
