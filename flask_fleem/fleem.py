@@ -18,8 +18,8 @@ from jinja2 import contextfunction
 from jinja2.loaders import TemplateNotFound
 from werkzeug import LocalProxy
 
-from theme import Theme, ThemeTemplateLoader
-from theme_manager import ThemeManager
+from .theme import Theme, ThemeTemplateLoader
+from .theme_manager import ThemeManager
 
 
 containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
@@ -37,7 +37,6 @@ def get_theme(ident):
     """
     return _fleem.themes[ident]
 
-
 def get_themes_list():
     """
     This returns a list of all the themes in the current app's theme manager,
@@ -45,16 +44,13 @@ def get_themes_list():
     """
     return list(_fleem.list_themes)
 
-
 def template_exists(templatename):
     return templatename in containable(current_app.jinja_env.list_templates())
-
 
 @contextfunction
 def global_theme_static(ctx, filename, external=False):
     theme = active_theme(ctx)
     return static_file_url(theme, filename, external)
-
 
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
@@ -65,7 +61,6 @@ def global_theme_template(ctx, templatename, fallback=True):
     else:
         return templatename
 
-
 def active_theme(ctx):
     if '_theme' in ctx:
         return ctx['_theme']
@@ -73,7 +68,6 @@ def active_theme(ctx):
         return ctx.name[8:].split('/', 1)[0]
     else:
         raise RuntimeError("Could not find the active theme")
-
 
 def static_file_url(theme, filename, external=False):
     """
@@ -88,7 +82,6 @@ def static_file_url(theme, filename, external=False):
         theme = theme.identifier
     return url_for('_themes.static', themeid=theme, filename=filename,
                    _external=external)
-
 
 def render_theme_template(theme, template_name, _fallback=True, **context):
     """
@@ -121,7 +114,7 @@ def render_theme_template(theme, template_name, _fallback=True, **context):
 
 class Fleem(object):
     """
-    :param app: The `~flask.Flask` instance to set up themes for.
+    :param app: The `flask.Flask` instance to set up themes for.
     :param loaders: An iterable of loaders to use. It defaults to
                     `packaged_themes_loader` and `theme_paths_loader`.
     :param app_identifier: The application identifier to use. If not given,
@@ -157,7 +150,9 @@ class Fleem(object):
         app.jinja_env.globals['theme'] = global_theme_template
         app.jinja_env.globals['theme_static'] = global_theme_static
         app.register_blueprint(self._blueprint, url_prefix=self.theme_url_prefix)
-        theme_manager = manager_class(app, app_identifier, loaders=loaders)
+        theme_manager = manager_class(app,
+                                      app_identifier,
+                                      loaders=loaders)
         app.extensions['fleem_manager'] = theme_manager
         return theme_manager
 

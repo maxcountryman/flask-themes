@@ -3,7 +3,8 @@ from operator import attrgetter
 import os
 import re
 from time import time
-from theme import Theme
+
+from .theme import Theme
 from flask import current_app
 from flask.ext.assets import Environment
 from webassets.env import RegisterError
@@ -64,7 +65,7 @@ def theme_paths_loader(app):
     name of its directory.
     """
     theme_paths = app.config.get('THEME_PATHS', ())
-    if isinstance(theme_paths, basestring):
+    if isinstance(theme_paths, str):
         theme_paths = [p.strip() for p in theme_paths.split(';')]
     return starchain(
         load_themes_from(path) for path in theme_paths
@@ -103,7 +104,6 @@ class ThemeManager(object):
         self.asset_env = self.set_asset_env()
         self.refresh()
 
-
     def set_asset_env(self):
         if hasattr(self.app.jinja_env, 'assets_environment'):
             return self.app.jinja_env.assets_environment
@@ -120,14 +120,12 @@ class ThemeManager(object):
             self.refresh()
         return self._themes
 
-
     @property
     def list_themes(self):
         """
         This yields all the `Theme` objects, in sorted order.
         """
-        return sorted(self.themes.itervalues(), key=attrgetter('identifier'))
-
+        return sorted(iter(self.themes.values()), key=attrgetter('identifier'))
 
     def valid_app_id(self, app_identifier):
         """
@@ -147,7 +145,7 @@ class ThemeManager(object):
             f.write(str( os.path.join(self.app.static_folder, "{}.manifest".format(self.app_identifier) )))
         extensions_filters = {'.css': 'cssmin', '.js': 'rjsmin'}
         for t in self.list_themes:
-            for k,v in extensions_filters.iteritems():
+            for k,v in iter(extensions_filters.items()):
                 manifest_entry, bundle = t.return_bundle(k,v)
                 f.write("{} :: {}\n".format(time(), str(manifest_entry)))
                 if bundle:
@@ -157,8 +155,9 @@ class ThemeManager(object):
                     else:
                         try:
                             self.asset_env.register(bundle_name, bundle)
-                        except RegisterError, e:
+                        except RegisterError as e:
                             raise e
+        f.close()
 
     def refresh(self):
         """

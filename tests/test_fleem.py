@@ -80,8 +80,7 @@ class SetupCase(unittest.TestCase):
         self.assertIsInstance(self.app.extensions['fleem_manager'], ThemeManager)
         self.assertEqual(self.manager.themes['cool'].name, self.app.extensions['fleem_manager'].themes['cool'].name)
         self.manager.refresh()
-        themeids = self.manager.themes.keys()
-        themeids.sort()
+        themeids = sorted(self.manager.themes.keys())
         self.assertEqual(themeids, ['cool', 'plain'])
         self.assertEqual(self.manager.themes['cool'].name, 'Cool Blue v2')
 
