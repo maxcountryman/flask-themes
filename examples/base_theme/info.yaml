@@ -1,0 +1,10 @@
+---
+identifier:   "base_theme"
+application:  "whatever_application"
+name:         "Base Theme"
+description:  "This isn't a real theme; it's an example of a theme's basic structure."
+author:       "author name"
+website:      "website for theme"
+license:      "license for theme"
+preview:      "preview.png"
+doctype:      "html5"

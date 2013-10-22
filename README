@@ -1,10 +1,17 @@
-Flask-Themes
+Fleem
 
-This provides infrastructure for themes in Flask.
+forked from flask-themes with a few differences:
 
-Installation    'pip install Flask-Themes' or
-                'easy_install Flask-Themes'
-Documentation   http://packages.python.org/Flask-Themes
-                to build: cd to 'docs' and 'make html'
-Source code     http://bitbucket.org/leafstorm/flask-themes/
-Tests           run 'nosetests'
+- updated for recent flask versions
+
+- integrates resources with webassets/flask-assets
+
+- yaml config files for themes, with greater flexibility in config file specification
+
+TODO:
+
+- refactor the directory parsing kludge of the bundling/resource registry
+
+- provide fallback theme for render_template, then fallback to local templates
+
+suggestions/input appreciated
