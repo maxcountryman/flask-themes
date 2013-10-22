@@ -160,7 +160,6 @@ class Fleem(object):
     @property
     def _blueprint(self):
         themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
-        themes_blueprint.jinja_loader
         themes_blueprint.jinja_loader = ThemeTemplateLoader()
         def static(themeid, filename):
             try:

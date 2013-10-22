@@ -3,7 +3,7 @@ import yaml
 from flask import current_app, _app_ctx_stack
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from werkzeug import cached_property, LocalProxy
-from flask.ext.assets import Bundle
+from flask_assets import Bundle
 from ._compat import implements_to_string
 
 _fleem = LocalProxy(lambda: current_app.extensions['fleem_manager'])
