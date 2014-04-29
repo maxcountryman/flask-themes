@@ -423,7 +423,6 @@ def global_theme_template(ctx, templatename, fallback=True):
         templatepath = '%s/%s' % (theme, templatename)
     else:
         templatepath = '_themes/%s/%s' % (theme, templatename)
-    templatepath = '_themes/%s/%s' % (theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
