@@ -15,6 +15,7 @@ six = "*"
 
 "flake8" = "*"
 nose = "*"
+pyyaml = "*"
 sphinx = "*"
 tox = "*"
 "e1839a8" = {path = ".", editable = true}
