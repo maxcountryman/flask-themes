@@ -19,16 +19,19 @@ Links
 """
 from setuptools import setup
 import sys
-requires = ['Flask>=0.6']
+
+requires = ['Flask', 'six']
 if sys.version_info < (2, 6):
     requires.append('simplejson')
+
+test_requires = ['nose']
 
 setup(
     name='Flask-Themes',
     version='0.1.4',
     url='http://bitbucket.org/leafstorm/flask-themes/',
     license='MIT',
-    author='Matthew "LeafStorm" Frazier',
+    author='Matthew \"LeafStorm\" Frazier',
     author_email='leafstormrush@gmail.com',
     description='Provides infrastructure for theming Flask applications',
     long_description=__doc__,
@@ -36,7 +39,7 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=requires,
-    tests_require='nose',
+    tests_require=test_requires,
     test_suite='nose.collector',
     classifiers=[
         'Development Status :: 4 - Beta',
