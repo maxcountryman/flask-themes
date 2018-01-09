@@ -216,7 +216,7 @@ class ThemeManager(object):
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
     """
-    def __init__(self, app=None, app_identifier='', loaders=None):
+    def __init__(self, app=None, app_identifier=None, loaders=None):
         self.app = app
         if app is not None:
             self.init_app(app)
