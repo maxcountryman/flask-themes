@@ -47,8 +47,14 @@ class Theme(object):
         #: path.
         self.path = os.path.abspath(path)
 
-        with open(os.path.join(self.path, 'info.json')) as fd:
-            self.info = i = json.load(fd)
+        try:
+            with open(os.path.join(self.path, 'info.json')) as fd:
+                try:
+                    self.info = i = json.load(fd)
+                except ValueError, e:
+                    raise path + ": Invalid json format."
+        except OSError, e:
+            raise path + ": Could not find `info.json`."
 
         #: The theme's name, as given in info.json. This is the human
         #: readable name.
@@ -162,7 +168,7 @@ def load_themes_from(path):
         try:
             t = Theme(os.path.join(path, basename))
         except:
-            pass
+            raise
         else:
             if t.identifier == basename:
                 yield t
@@ -401,7 +407,10 @@ def active_theme(ctx):
 @contextfunction
 def global_theme_template(ctx, templatename, fallback=True):
     theme = active_theme(ctx)
-    templatepath = '_themes/%s/%s' % (theme, templatename)
+    if USING_BLUEPRINTS:
+        templatepath = '%s/%s' % (theme, templatename)
+    else:
+        templatepath = '_themes/%s/%s' % (theme, templatename)
     if (not fallback) or template_exists(templatepath):
         return templatepath
     else:
