@@ -18,18 +18,13 @@ import itertools
 import os
 import os.path
 import re
-from flask import (Module, send_from_directory, render_template, json,
+from six import iteritems, itervalues, string_types
+from flask import (Blueprint, send_from_directory, render_template, json,
                    _request_ctx_stack, abort, url_for)
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from operator import attrgetter
 from werkzeug import cached_property
-try:
-    from flask import Blueprint
-except ImportError:
-    USING_BLUEPRINTS = False
-else:
-    USING_BLUEPRINTS = True
 
 DOCTYPES = 'html4 html5 xhtml'.split()
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -194,7 +189,7 @@ def theme_paths_loader(app):
     name of its directory.
     """
     theme_paths = app.config.get('THEME_PATHS', ())
-    if isinstance(theme_paths, basestring):
+    if isinstance(theme_paths, string_types):
         theme_paths = [p.strip() for p in theme_paths.split(';')]
     return starchain(
         load_themes_from(path) for path in theme_paths
@@ -221,8 +216,11 @@ class ThemeManager(object):
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
     """
-    def __init__(self, app, app_identifier, loaders=None):
-        self.bind_app(app)
+    def __init__(self, app=None, app_identifier=None, loaders=None):
+        self.app = app
+        if app is not None:
+            self.init_app(app)
+
         self.app_identifier = app_identifier
 
         self._themes = None
@@ -233,6 +231,9 @@ class ThemeManager(object):
             self.loaders.extend(loaders)
         else:
             self.loaders.extend((packaged_themes_loader, theme_paths_loader))
+
+    def init_app(self, app):
+        self.bind_app(app)
 
     @property
     def themes(self):
@@ -248,7 +249,7 @@ class ThemeManager(object):
         """
         This yields all the `Theme` objects, in sorted order.
         """
-        return sorted(self.themes.itervalues(), key=attrgetter('identifier'))
+        return sorted(itervalues(self.themes), key=attrgetter('identifier'))
 
     def bind_app(self, app):
         """
@@ -332,8 +333,8 @@ class ThemeTemplateLoader(BaseLoader):
         res = []
         ctx = _request_ctx_stack.top
         fmt = '_themes/%s/%s'
-        for ident, theme in ctx.app.theme_manager.themes.iteritems():
-            res.extend((fmt % (ident, t)).encode("utf8")
+        for ident, theme in iteritems(ctx.app.theme_manager.themes):
+            res.extend((fmt % (ident, t))
                        for t in theme.jinja_loader.list_templates())
         return res
 
@@ -346,19 +347,10 @@ def template_exists(templatename):
 ### theme functionality
 
 
-themes_mod = Module(__name__, name='_themes', url_prefix='/_themes')
-themes_mod.jinja_loader     # prevent any of the property's methods from
-                            # taking effect
-themes_mod.jinja_loader = ThemeTemplateLoader(False)
+themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
+themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
 
 
-if USING_BLUEPRINTS:
-    themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')
-    themes_blueprint.jinja_loader
-    themes_blueprint.jinja_loader = ThemeTemplateLoader(True)
-
-
-@themes_mod.route('/<themeid>/<path:filename>')
 def static(themeid, filename):
     try:
         ctx = _request_ctx_stack.top
@@ -368,9 +360,8 @@ def static(themeid, filename):
     return send_from_directory(theme.static_path, filename)
 
 
-if USING_BLUEPRINTS:
-    themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static',
-                                  view_func=static)
+themes_blueprint.add_url_rule('/<themeid>/<path:filename>', 'static',
+                              view_func=static)
 
 
 def setup_themes(app, loaders=None, app_identifier=None,
@@ -395,10 +386,7 @@ def setup_themes(app, loaders=None, app_identifier=None,
     manager_cls(app, app_identifier, loaders=loaders)
     app.jinja_env.globals['theme'] = global_theme_template
     app.jinja_env.globals['theme_static'] = global_theme_static
-    if USING_BLUEPRINTS:
-        app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
-    else:
-        app.register_module(themes_mod, url_prefix=theme_url_prefix)
+    app.register_blueprint(themes_blueprint, url_prefix=theme_url_prefix)
 
 
 def active_theme(ctx):

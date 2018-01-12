@@ -10,8 +10,7 @@ A sandbox to play around with themes in.
 """
 import yaml
 from flask import (Flask, url_for, redirect, session, Markup, abort)
-from flask.ext.themes import (setup_themes, render_theme_template,
-                             get_themes_list)
+from flask_themes import setup_themes, render_theme_template, get_themes_list
 from operator import attrgetter
 
 # default settings
@@ -35,7 +34,7 @@ class Post(object):
         self.body = data['body']
         self.title = data['title']
         self.created = data['created']
-    
+
     @property
     def content(self):
         return Markup('\n\n'.join(
@@ -47,7 +46,7 @@ class PostStore(object):
     def __init__(self):
         self.by_date = []
         self.by_slug = {}
-    
+
     def add_posts(self, post_data):
         posts = [Post(post) for post in post_data]
         for post in posts:
