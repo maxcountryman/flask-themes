@@ -29,7 +29,8 @@ from werkzeug import cached_property
 DOCTYPES = 'html4 html5 xhtml'.split()
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
-containable = lambda i: i if hasattr(i, '__contains__') else tuple(i)
+
+def containable(i): return i if hasattr(i, '__contains__') else tuple(i)
 
 
 def starchain(i):
@@ -42,6 +43,7 @@ class Theme(object):
 
     :param path: The path to the theme directory.
     """
+
     def __init__(self, path):
         #: The theme's root path. All the files in the theme are under this
         #: path.
@@ -138,7 +140,7 @@ class Theme(object):
         return FileSystemLoader(self.templates_path)
 
 
-### theme loaders
+# theme loaders
 
 def list_folders(path):
     """
@@ -216,6 +218,7 @@ class ThemeManager(object):
                     `packaged_themes_loader` and `theme_paths_loader`, in that
                     order.
     """
+
     def __init__(self, app=None, app_identifier=None, loaders=None):
         self.app = app
         if app is not None:
@@ -304,13 +307,14 @@ def get_themes_list():
     return list(ctx.app.theme_manager.list_themes())
 
 
-### theme template loader
+# theme template loader
 
 class ThemeTemplateLoader(BaseLoader):
     """
     This is a template loader that loads templates from the current app's
     loaded themes.
     """
+
     def __init__(self, as_blueprint=False):
         self.as_blueprint = as_blueprint
         BaseLoader.__init__(self)
@@ -344,7 +348,7 @@ def template_exists(templatename):
     return templatename in containable(ctx.app.jinja_env.list_templates())
 
 
-### theme functionality
+# theme functionality
 
 
 themes_blueprint = Blueprint('_themes', __name__, url_prefix='/_themes')

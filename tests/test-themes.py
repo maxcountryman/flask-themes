@@ -6,7 +6,8 @@ This tests the Flask-Themes extension.
 from __future__ import with_statement
 import os.path
 from flask import Flask, url_for, render_template
-from flask_themes import (setup_themes, Theme, load_themes_from,
+from flask_themes import (
+    setup_themes, Theme, load_themes_from,
     packaged_themes_loader, theme_paths_loader, ThemeManager, static_file_url,
     template_exists, themes_blueprint, render_theme_template, get_theme,
     get_themes_list)
