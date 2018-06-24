@@ -28,7 +28,7 @@ def create_theme(appident, destination):
         author='Your Name'
     )
     os.makedirs(destination)
-    
+
     info_json = os.path.join(destination, 'info.json')
     templates_path = os.path.join(destination, 'templates')
     static_path = os.path.join(destination, 'static')
