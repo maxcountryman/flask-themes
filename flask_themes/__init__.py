@@ -24,7 +24,7 @@ from flask import (Blueprint, send_from_directory, render_template, json,
 from jinja2 import contextfunction
 from jinja2.loaders import FileSystemLoader, BaseLoader, TemplateNotFound
 from operator import attrgetter
-from werkzeug import cached_property
+from werkzeug.utils import cached_property
 
 DOCTYPES = 'html4 html5 xhtml'.split()
 IDENTIFIER = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
